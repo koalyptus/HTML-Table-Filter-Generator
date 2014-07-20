@@ -1,4 +1,4 @@
 HTML-Table-Filter-Generator
 ===========================
 
-Filter HTML table content easily
+Filter HTML tables content easily

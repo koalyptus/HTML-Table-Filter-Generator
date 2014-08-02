@@ -9,12 +9,12 @@ This script adds to any html table a "filter by column" feature that enables use
 
 * Convert a regular HTML table into an advanced grid component providing:
 	* Advanced columns filtering model
-        * Sorting and pagination facilities
-        * Complete selection model (addon)
-        * Extended keyboard navigation (addon) 
-        * Inline cell or row editing (addon)
-        * Row insertion or deleting (addon)
-        * And even more behaviors...
+	* Sorting and pagination facilities
+	* Complete selection model (addon)
+	* Extended keyboard navigation (addon) 
+	* Inline cell or row editing (addon)
+	* Row insertion or deleting (addon)
+	* And even more behaviors...
 * Attach to an existing HTML table
 * Integration with any server-side technology as this is a pure client-side solution
 * Callbacks for all events, and delegates for most actions

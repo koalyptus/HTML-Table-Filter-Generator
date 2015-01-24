@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------
-	- HTML Table Filter Generator v2.5
+	- HTML Table Filter Generator v2.5.1
 	- By Max Guglielmi (tablefilter.free.fr)
 	- Licensed under the MIT License
 --------------------------------------------------------------------------
@@ -24,10 +24,10 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------------
-	- Special credit to: 
-	Cedric Wartel, cnx.claude@free.fr, Florent Hirchy, Váry Péter, 
-	Anthony Maes, Nuovella Williams, Fuggerbit, Venkata Seshagiri Rao 
-	Raya, Piepiax, Manuel Kern, Baladhandayutham for active contribution 
+	- Special credit to:
+	Cedric Wartel, cnx.claude@free.fr, Florent Hirchy, Váry Péter,
+	Anthony Maes, Nuovella Williams, Fuggerbit, Venkata Seshagiri Rao
+	Raya, Piepiax, Manuel Kern, Baladhandayutham for active contribution
 	and/or inspiration
 ------------------------------------------------------------------------*/
 
@@ -37,13 +37,13 @@ var TF = function(id)
 	- Params:
 			- id: table id (string)
 			- refRow (optional): row index (number)
-			- config (optional): configuration 
+			- config (optional): configuration
 			object (literal object)
 =====================================================*/
 {
 	if(arguments.length === 0){ return; }
 	this.id = id;
-	this.version = '2.5';
+	this.version = '2.5.1';
 	this.year = (new Date()).getFullYear();
 	this.tbl = tf_Id(id);
 	this.startRow = undefined;
@@ -71,19 +71,19 @@ var TF = function(id)
                     case 'object':
                         this.fObj = arguments[i];
                     break;
-                }//switch                           
+                }//switch
             }//for
         }//if
-		
+
 		var f = !this.fObj ? {} : this.fObj;
-		
+
 		//Start row et cols nb
 		this.refRow = this.startRow==undefined ? 2 : (this.startRow+1);
 		try{ this.nbCells = this.GetCellsNb(this.refRow) }
 		catch(e){ this.nbCells = this.GetCellsNb(0) }
-		
+
 		this.basePath = 			f.base_path!=undefined ? f.base_path : 'TableFilter/'; //default script base path
-		
+
 		/*** filter types ***/
 		this.fltTypeInp =			'input';
 		this.fltTypeSlc =			'select';
@@ -91,45 +91,45 @@ var TF = function(id)
 		this.fltTypeCheckList =		'checklist';
 		this.fltTypeNone =			'none';
 		this.fltCol = 				[]; //filter type of each column
-		
+
 		for(var i=0; i<this.nbCells; i++){
 			if(this['col'+i]==undefined)
-				this['col'+i] = (f['col_'+i]==undefined) 
+				this['col'+i] = (f['col_'+i]==undefined)
 					? this.fltTypeInp : f['col_'+i].tf_LCase();
 			this.fltCol.push(this['col'+i]);
 		}
-		
+
 		/*** Developer additional methods ***/
 		this.publicMethods = f.public_methods!=undefined ? f.public_methods : false;
-		
+
 		/*** filters' grid properties ***/
 		this.fltGrid = 				f.grid==false ? false : true; //enables/disables filter grid
-		
+
 		/*** Grid layout ***/
-		this.gridLayout = 			f.grid_layout ? true : false; //enables/disables grid layout (fixed headers)		
+		this.gridLayout = 			f.grid_layout ? true : false; //enables/disables grid layout (fixed headers)
 		this.hasGridWidthsRow =		false; //flag indicating if the grid has an additional row for column widths (IE<=7)
 		this.gridColElms =			[];
 		this.sourceTblHtml =		null;
 		if(this.gridLayout){
 			if(this.tbl.outerHTML==undefined) tf_SetOuterHtml();  //Firefox does not support outerHTML property...
 			this.sourceTblHtml = 		this.tbl.outerHTML; //original table html
-		}												
+		}
 		/*** ***/
 		this.filtersRowIndex =		f.filters_row_index!=undefined ? f.filters_row_index : 0;
 		this.headersRow =			f.headers_row_index!=undefined ? f.headers_row_index : (this.filtersRowIndex==0 ? 1 : 0);
 		if(this.gridLayout){
 			if(this.headersRow>1) this.filtersRowIndex = this.headersRow+1;
 			else{ this.filtersRowIndex = 1; this.headersRow = 0; }
-		}								
+		}
 		this.fltCellTag =			f.filters_cell_tag!=undefined //defines tag of the cells containing filters (td/th)
-										? (f.filters_cell_tag!='th' ? 'td' : 'th') : 'td';		
+										? (f.filters_cell_tag!='th' ? 'td' : 'th') : 'td';
 		this.fltIds = 				[]; //stores filters ids
 		this.fltElms =				[]; //stores filters DOM elements
 		this.searchArgs =			null; //stores filters values
 		this.tblData =				[]; //stores table data
 		this.validRowsIndex =		null; //stores valid rows indexes (rows visible upon filtering)
 		this.fltGridEl =			null; //stores filters row element
-		this.isFirstLoad =			true; //is first load boolean 
+		this.isFirstLoad =			true; //is first load boolean
 		this.infDiv =				null; //container div for paging elements, reset btn etc.
 		this.lDiv =					null; //div for rows counter
 		this.rDiv =					null; //div for reset button and results per page select
@@ -137,21 +137,21 @@ var TF = function(id)
 		this.contDiv =				null; //table container div for fixed headers (IE only)
 		this.infDivCssClass =		f.inf_div_css_class!=undefined	//defines css class for div containing
 										? f.inf_div_css_class : 'inf';				//paging elements, rows counter etc.
-		this.lDivCssClass =			f.left_div_css_class!=undefined	//defines css class for left div 
+		this.lDivCssClass =			f.left_div_css_class!=undefined	//defines css class for left div
 										? f.left_div_css_class : 'ldiv';
-		this.rDivCssClass =			f.right_div_css_class!=undefined //defines css class for right div 
+		this.rDivCssClass =			f.right_div_css_class!=undefined //defines css class for right div
 										? f.right_div_css_class : 'rdiv';
-		this.mDivCssClass =			f.middle_div_css_class!=undefined //defines css class for mid div 
+		this.mDivCssClass =			f.middle_div_css_class!=undefined //defines css class for mid div
 										? f.middle_div_css_class : 'mdiv';
-		this.contDivCssClass =		f.content_div_css_class!=undefined 
+		this.contDivCssClass =		f.content_div_css_class!=undefined
 										? f.content_div_css_class : 'cont';	//table container div css class
-		
+
 		/*** filters' grid appearance ***/
 		this.stylesheet =   		f.stylesheet!=undefined ? f.stylesheet : this.basePath+'filtergrid.css'; //stylesheet file
 		this.stylesheetId =			this.id + '_style';
 		this.fltsRowCssClass =		f.flts_row_css_class!=undefined //defines css class for filters row
 										? f.flts_row_css_class : 'fltrow';
-		this.enableIcons =			f.enable_icons!=undefined ? f.enable_icons : true; //enables/disables icons (paging, reset button)		
+		this.enableIcons =			f.enable_icons!=undefined ? f.enable_icons : true; //enables/disables icons (paging, reset button)
 		this.alternateBgs =			f.alternate_rows ? true : false; //enables/disbles rows alternating bg colors
 		this.hasColWidth =			f.col_width ? true : false; //defines widths of columns
 		this.colWidth =				this.hasColWidth ? f.col_width : null;
@@ -164,21 +164,21 @@ var TF = function(id)
 		this.fltSmallCssClass =		f.flt_small_css_class!=undefined //defines css class for filters
 										? f.flt_small_css_class : 'flt_s';
 		this.singleFltCssClass =	f.single_flt_css_class!=undefined //defines css class for single-filter
-										? f.single_flt_css_class : 'single_flt';	
+										? f.single_flt_css_class : 'single_flt';
 		this.isStartBgAlternate =	true;
 		this.rowBgEvenCssClass =	f.even_row_css_class!=undefined //defines css class for even rows
 										? f.even_row_css_class :'even';
 		this.rowBgOddCssClass =		f.odd_row_css_class!=undefined //defines css class for odd rows
 										? f.odd_row_css_class :'odd';
-		
+
 		/*** filters' grid behaviours ***/
 		this.enterKey =				f.enter_key==false ? false : true; //enables/disables enter key
-		this.isModFilterFn = 		f.mod_filter_fn ? true : false; //enables/disables alternative fn call		
+		this.isModFilterFn = 		f.mod_filter_fn ? true : false; //enables/disables alternative fn call
 		this.modFilterFn =			this.isModFilterFn ? f.mod_filter_fn : null;// used by tf_DetectKey fn
 		this.onBeforeFilter =		tf_IsFn(f.on_before_filter) //calls function before filtering starts
 										? f.on_before_filter : null;
 		this.onAfterFilter =		tf_IsFn(f.on_after_filter) //calls function after filtering
-										? f.on_after_filter : null;								
+										? f.on_after_filter : null;
 		this.matchCase =			f.match_case ? true : false; //enables/disables case sensitivity
 		this.exactMatch =			f.exact_match ? true : false; //enables/disbles exact match for search
 		this.refreshFilters =		f.refresh_filters ? true : false; //refreshes drop-down lists upon validation
@@ -194,7 +194,7 @@ var TF = function(id)
 		this.isExternalFlt =		f.external_flt_grid ? true : false; //enables/disables external filters generation
 		this.externalFltTgtIds =	f.external_flt_grid_ids!=undefined //array containing ids of external elements containing filters
 										? f.external_flt_grid_ids : null;
-		this.externalFltEls =		[]; //stores filters elements if isExternalFlt is true		
+		this.externalFltEls =		[]; //stores filters elements if isExternalFlt is true
 		this.execDelay =			f.exec_delay ? parseInt(f.exec_delay) : 100; //delays filtering process if loader true
 		this.status =				f.status ? true : false; //enables/disables status messages
 		this.onFiltersLoaded =		tf_IsFn(f.on_filters_loaded) //calls function when filters grid loaded
@@ -202,7 +202,7 @@ var TF = function(id)
 		this.singleSearchFlt =		f.single_search_filter ? true : false; //enables/disables single filter search
 		this.onRowValidated =		tf_IsFn(f.on_row_validated) //calls function after row is validated
 									 	? f.on_row_validated : null;
-		this.customCellDataCols =	f.custom_cell_data_cols ? f.custom_cell_data_cols : []; //array defining columns for customCellData event 	
+		this.customCellDataCols =	f.custom_cell_data_cols ? f.custom_cell_data_cols : []; //array defining columns for customCellData event
 		this.customCellData =		tf_IsFn(f.custom_cell_data) //calls custom function for retrieving cell data
 									 	? f.custom_cell_data : null;
 		this.inpWatermark = 		f.input_watermark!=undefined ? f.input_watermark : ''; //input watermark text array
@@ -213,7 +213,7 @@ var TF = function(id)
 		this.toolBarTgtId =			f.toolbar_target_id!=undefined //id of toolbar container element
 										? f.toolbar_target_id : null;
 		this.helpInstructions = 	(f.help_instructions!=undefined) ? f.help_instructions : null; //enables/disables help div
-		this.popUpFilters =			f.popup_filters!=undefined ? f.popup_filters : false; //popup filters 
+		this.popUpFilters =			f.popup_filters!=undefined ? f.popup_filters : false; //popup filters
 		this.markActiveColumns =	f.mark_active_columns!=undefined ? f.mark_active_columns : false; //active columns color
 		this.activeColumnsCssClass = f.active_columns_css_class!=undefined //defines css class for active column header
 										? f.active_columns_css_class : 'activeHeader';
@@ -229,47 +229,47 @@ var TF = function(id)
 		this.emptyText =			f.empty_text!=undefined ? f.empty_text : '(Empty)'; //defines empty option text
 		this.enableNonEmptyOption =	f.enable_non_empty_option ? true : false; //enables/disables non empty option in combo-box filters
 		this.nonEmptyText =			f.non_empty_text!=undefined ? f.non_empty_text : '(Non empty)'; //defines empty option text
-		this.onSlcChange = 			f.on_change==false ? false : true; //enables/disables onChange event on combo-box 
+		this.onSlcChange = 			f.on_change==false ? false : true; //enables/disables onChange event on combo-box
 		this.sortSlc =				f.sort_select==false ? false : true; //enables/disables select options sorting
 		this.isSortNumAsc =			f.sort_num_asc ? true : false; //enables/disables ascending numeric options sorting
 		this.sortNumAsc =			this.isSortNumAsc ? f.sort_num_asc : null;
 		this.isSortNumDesc =		f.sort_num_desc ? true : false; //enables/disables descending numeric options sorting
 		this.sortNumDesc =			this.isSortNumDesc ? f.sort_num_desc : null;
-		this.slcFillingMethod =		f.slc_filling_method!=undefined //sets select filling method: 'innerHTML' or 
+		this.slcFillingMethod =		f.slc_filling_method!=undefined //sets select filling method: 'innerHTML' or
 										? f.slc_filling_method : 'createElement';	//'createElement'
 		this.fillSlcOnDemand =		f.fill_slc_on_demand ? true : false; //enabled selects are populated on demand
-		this.activateSlcTooltip =	f.activate_slc_tooltip!=undefined //IE only, tooltip text appearing on select 
+		this.activateSlcTooltip =	f.activate_slc_tooltip!=undefined //IE only, tooltip text appearing on select
 										? f.activate_slc_tooltip : 'Click to activate'; // before it is populated
-		this.multipleSlcTooltip =	f.multiple_slc_tooltip!=undefined //tooltip text appearing on multiple select 
+		this.multipleSlcTooltip =	f.multiple_slc_tooltip!=undefined //tooltip text appearing on multiple select
 										? f.multiple_slc_tooltip : 'Use Ctrl key for multiple selections';
 		this.hasCustomSlcOptions =	f.custom_slc_options && tf_IsObj(f.custom_slc_options)
-										? true : false;	
+										? true : false;
 		this.customSlcOptions =		f.custom_slc_options!=undefined	? f.custom_slc_options : null;
 		this.onBeforeOperation =	tf_IsFn(f.on_before_operation) //calls function before col operation
 										? f.on_before_operation : null;
 		this.onAfterOperation =		tf_IsFn(f.on_after_operation) //calls function after col operation
 										? f.on_after_operation : null;
-		
+
 		/*** checklist customisation and behaviours ***/
 		this.checkListDiv = 		[]; //checklist container div
-		this.checkListDivCssClass = f.div_checklist_css_class!=undefined 
+		this.checkListDivCssClass = f.div_checklist_css_class!=undefined
 										? f.div_checklist_css_class : 'div_checklist'; //defines css class for div containing checklist filter
 		this.checkListCssClass =	f.checklist_css_class!=undefined //defines css class for checklist filters
 										? f.checklist_css_class : 'flt_checklist';
 		this.checkListItemCssClass = f.checklist_item_css_class!=undefined //defines css class for checklist item (li)
 										? f.checklist_item_css_class : 'flt_checklist_item';
 		this.checkListSlcItemCssClass = f.checklist_selected_item_css_class!=undefined //defines css class for selected checklist item (li)
-										? f.checklist_selected_item_css_class : 'flt_checklist_slc_item';								
-		this.activateCheckListTxt =	f.activate_checklist_text!=undefined //Load on demand text 
+										? f.checklist_selected_item_css_class : 'flt_checklist_slc_item';
+		this.activateCheckListTxt =	f.activate_checklist_text!=undefined //Load on demand text
 										? f.activate_checklist_text : 'Click to load data';
 		this.checkListItemDisabledCssClass = f.checklist_item_disabled_css_class!=undefined //defines css class for checklist filters
 											? f.checklist_item_disabled_css_class : 'flt_checklist_item_disabled';
 		this.enableCheckListResetFilter = f.enable_checklist_reset_filter!=undefined ? f.enable_checklist_reset_filter : true;
-		
+
 		/*** Filter operators ***/
 		this.rgxOperator =			f.regexp_operator!=undefined ? f.regexp_operator : 'rgx:';
 		this.emOperator =			f.empty_operator!=undefined ? f.empty_operator : '[empty]';
-		this.nmOperator =			f.nonempty_operator!=undefined ? f.nonempty_operator : '[nonempty]';		
+		this.nmOperator =			f.nonempty_operator!=undefined ? f.nonempty_operator : '[nonempty]';
 		this.orOperator =			f.or_operator!=undefined ? f.or_operator : '||';
 		this.anOperator =			f.and_operator!=undefined ? f.and_operator : '&&';
 		this.grOperator = 			f.greater_operator!=undefined ? f.greater_operator : '>';
@@ -283,28 +283,28 @@ var TF = function(id)
 		this.enOperator =			f.end_with_operator!=undefined ? f.end_with_operator : '}';
 		this.curExp =				f.cur_exp!=undefined ? f.cur_exp : '^[¥£€$]';
 		this.separator = 			f.separator!=undefined ? f.separator : ',';
-		
+
 		/*** rows counter ***/
 		this.rowsCounter = 			f.rows_counter ? true : false; //show/hides rows counter
-		
+
 		/*** status bar ***/
-		this.statusBar =			f.status_bar ? f.status_bar : false; //show/hides status bar			
-		
+		this.statusBar =			f.status_bar ? f.status_bar : false; //show/hides status bar
+
 		/*** loader ***/
-		this.loader =				f.loader ? true : false; //enables/disables loader					
-		
+		this.loader =				f.loader ? true : false; //enables/disables loader
+
 		/*** validation - reset buttons/links ***/
 		this.displayBtn =			f.btn ? true : false; //show/hides filter's validation button
 		this.btnText =				f.btn_text!=undefined ? f.btn_text : (!this.enableIcons ? 'Go' : ''); //defines validation button text
-		this.btnCssClass =			f.btn_css_class!=undefined ? f.btn_css_class : (!this.enableIcons ? 'btnflt' : 'btnflt_icon'); //defines css class for validation button										
+		this.btnCssClass =			f.btn_css_class!=undefined ? f.btn_css_class : (!this.enableIcons ? 'btnflt' : 'btnflt_icon'); //defines css class for validation button
 		this.btnReset = 			f.btn_reset ? true : false; //show/hides reset link
 		this.btnResetCssClass =		f.btn_reset_css_class!=undefined //defines css class for reset button
 									? f.btn_reset_css_class :'reset';
 		this.onBeforeReset = 		tf_IsFn(f.on_before_reset) ? f.on_before_reset : null; //callback function before filters are cleared
 		this.onAfterReset = 		tf_IsFn(f.on_after_reset) ? f.on_after_reset : null; //callback function after filters are cleared
-		
+
 		/*** paging ***/
-		this.paging =				f.paging ? true : false; //enables/disables table paging		
+		this.paging =				f.paging ? true : false; //enables/disables table paging
 		this.hasResultsPerPage =	f.results_per_page ? true : false; //enables/disables results per page drop-down
 		this.btnPageCssClass =		f.paging_btn_css_class!=undefined
 										? f.paging_btn_css_class :'pgInp'; //css class for paging buttons (previous,next,etc.)
@@ -316,8 +316,8 @@ var TF = function(id)
 		this.nbHiddenRows =			0; //nb hidden rows
 		this.startPagingRow =		0; //1st row index of current page
 		this.nbPages = 				0; //total nb of pages
-		this.currentPageNb =		1; //current page nb		
-		
+		this.currentPageNb =		1; //current page nb
+
 		/*** webfx sort adapter ***/
 		this.sort =					f.sort ? true : false; //enables/disables default table sorting
 		this.isSortEnabled =		false; //indicates if sort is set (used in tfAdapter.sortabletable.js)
@@ -330,8 +330,8 @@ var TF = function(id)
 		this.sortConfig.sortTypes =	this.sortConfig['sort_types']!=undefined ? f.sort_config.sort_types : [];
 		this.sortConfig.sortCol =	this.sortConfig['sort_col']!=undefined ? f.sort_config.sort_col : null;
 		this.sortConfig.asyncSort =	this.sortConfig['async_sort']!=undefined ? true : false;
-		this.sortConfig.triggerIds = this.sortConfig['sort_trigger_ids']!=undefined ? f.sort_config.sort_trigger_ids : [];									
-		
+		this.sortConfig.triggerIds = this.sortConfig['sort_trigger_ids']!=undefined ? f.sort_config.sort_trigger_ids : [];
+
 		/*** ezEditTable extension ***/
 		this.selectable =			f.selectable!=undefined ? f.selectable : false; //enables/disables table selection feature
 		this.editable =				f.editable!=undefined ? f.editable : false; //enables/disables editable table feature
@@ -343,34 +343,34 @@ var TF = function(id)
 		this.ezEditTableConfig.stylesheet = this.ezEditTableConfig['stylesheet']!=undefined ? f.ezEditTable_config.stylesheet : this.basePath+'ezEditTable/ezEditTable.css';
 		this.ezEditTableConfig.stylesheetName = this.ezEditTableConfig['stylesheetName']!=undefined ? f.ezEditTable_config.stylesheetName : 'ezEditTableCss';
 		this.ezEditTableConfig.err = 'Failed to instantiate EditTable object.\n"ezEditTable" module may not be available.';
-		
+
 		/*** onkeyup event ***/
 		this.onKeyUp =				f.on_keyup ? true : false; //enables/disables onkeyup event, table is filtered when user stops typing
 		this.onKeyUpDelay =			f.on_keyup_delay!=undefined ? f.on_keyup_delay : 900; //onkeyup delay timer (msecs)
 		this.isUserTyping = 		null; //typing indicator
-		this.onKeyUpTimer = 		undefined;		
-		
+		this.onKeyUpTimer = 		undefined;
+
 		/*** keyword highlighting ***/
 		this.highlightKeywords = 	f.highlight_keywords ? true : false; //enables/disables keyword highlighting
 		this.highlightCssClass =	f.highlight_css_class!=undefined ? f.highlight_css_class : 'keyword'; //defines css class for highlighting
-		this.highlightedNodes = 	[];	
-		
+		this.highlightedNodes = 	[];
+
 		/*** data types ***/
 		this.defaultDateType =		f.default_date_type!=undefined //defines default date type (european DMY)
 										? f.default_date_type : 'DMY';
-		this.thousandsSeparator =	f.thousands_separator!=undefined //defines default thousands separator 
+		this.thousandsSeparator =	f.thousands_separator!=undefined //defines default thousands separator
 										? f.thousands_separator : ','; //US = ',' EU = '.'
-		this.decimalSeparator = 	f.decimal_separator!=undefined //defines default decimal separator 
+		this.decimalSeparator = 	f.decimal_separator!=undefined //defines default decimal separator
 										? f.decimal_separator : '.'; //US & javascript = '.' EU = ','
 		this.hasColNbFormat = 		f.col_number_format ? true : false; //enables number format per column
 		this.colNbFormat = 			this.hasColNbFormat ? f.col_number_format : null; //array containing columns nb formats
 		this.hasColDateType = 		f.col_date_type ? true : false; //enables date type per column
 		this.colDateType =			this.hasColDateType ? f.col_date_type : null; //array containing columns date type
-		
+
 		/*** status messages ***/
 		this.msgFilter =			f.msg_filter!=undefined ? f.msg_filter : 'Filtering data...'; //filtering
-		this.msgPopulate =			f.msg_populate!=undefined ? f.msg_populate : 'Populating filter...'; //populating drop-downs 
-		this.msgPopulateCheckList =	f.msg_populate_checklist!=undefined ? f.msg_populate_checklist : 'Populating list...'; //populating drop-downs 
+		this.msgPopulate =			f.msg_populate!=undefined ? f.msg_populate : 'Populating filter...'; //populating drop-downs
+		this.msgPopulateCheckList =	f.msg_populate_checklist!=undefined ? f.msg_populate_checklist : 'Populating list...'; //populating drop-downs
 		this.msgChangePage =		f.msg_change_page!=undefined ? f.msg_change_page : 'Collecting paging data...'; //changing paging page
 		this.msgClear =				f.msg_clear!=undefined ? f.msg_clear : 'Clearing filters...'; //clearing filters
 		this.msgChangeResults =		f.msg_change_results!=undefined ? f.msg_change_results : 'Changing results per page...'; //changing nb results/page
@@ -379,7 +379,7 @@ var TF = function(id)
 		this.msgResetPageLength =	f.msg_reset_page_length!=undefined ? f.msg_reset_page_length : 'Re-setting page length...'; //re-setting page length
 		this.msgSort =				f.msg_sort!=undefined ? f.msg_sort : 'Sorting data...'; //table sorting
 		this.msgLoadExtensions =	f.msg_load_extensions!=undefined ? f.msg_load_extensions : 'Loading extensions...'; //extensions loading
-		this.msgLoadThemes =		f.msg_load_themes!=undefined ? f.msg_load_themes : 'Loading theme(s)...'; //themes loading			
+		this.msgLoadThemes =		f.msg_load_themes!=undefined ? f.msg_load_themes : 'Loading theme(s)...'; //themes loading
 
 		/*** ids prefixes ***/
 		this.prfxTf =				'TF'; //css class name added to table
@@ -393,7 +393,7 @@ var TF = function(id)
 		this.prfxCheckListDiv =		'chkdiv_'; //checklist filter container div
 		this.prfxSlcPages =			'slcPages_'; //pages select
 		this.prfxSlcResults = 		'slcResults_'; //results per page select
-		this.prfxSlcResultsTxt =	'slcResultsTxt_'; //label preciding results per page select	
+		this.prfxSlcResultsTxt =	'slcResultsTxt_'; //label preciding results per page select
 		this.prfxBtnNextSpan =		'btnNextSpan_'; //span containing next page button
 		this.prfxBtnPrevSpan =		'btnPrevSpan_'; //span containing previous page button
 		this.prfxBtnLastSpan =		'btnLastSpan_'; //span containing last page button
@@ -426,27 +426,27 @@ var TF = function(id)
 		this.prfxHelpDiv =			'helpDiv_'; //id prefix for help elements
 		this.prfxPopUpSpan =		'popUpSpan_'; //id prefix for pop-up filter span
 		this.prfxPopUpDiv =			'popUpDiv_'; //id prefix for pop-up div containing filter
-		
+
 		/*** cookies ***/
 		this.hasStoredValues =		false;
 		this.rememberGridValues =	f.remember_grid_values ? true : false; //remembers filters values on page load
 		this.fltsValuesCookie =		this.prfxCookieFltsValues + this.id; //cookie storing filter values
 		this.rememberPageNb =		this.paging && f.remember_page_number
-										? true : false; //remembers page nb on page load	
+										? true : false; //remembers page nb on page load
 		this.pgNbCookie =			this.prfxCookiePageNb + this.id; //cookie storing page nb
 		this.rememberPageLen =		this.paging && f.remember_page_length
 										? true : false; //remembers page length on page load
 		this.pgLenCookie =			this.prfxCookiePageLen + this.id; //cookie storing page length
-		this.cookieDuration =		f.set_cookie_duration 
+		this.cookieDuration =		f.set_cookie_duration
 										? parseInt(f.set_cookie_duration) :100000; //cookie duration
-		
+
 		/*** extensions ***/
 		this.hasExtensions =		f.extensions ? true : false; //imports external script
 		this.extensions =			(this.hasExtensions) ? f.extensions : null;
-		
+
 		/*** themes ***/
-		this.enableDefaultTheme =	f.enable_default_theme ? true : false;	
-		this.hasThemes =			(f.enable_default_theme 
+		this.enableDefaultTheme =	f.enable_default_theme ? true : false;
+		this.hasThemes =			(f.enable_default_theme
 										|| (f.themes && tf_IsObj(f.themes))) ? true : false; //imports themes
 		this.themes =				(this.hasThemes) ? f.themes : null;
 		this.themesPath =			f.themes_path!=undefined ? f.themes_path : this.basePath+'TF_Themes/'; //themes path
@@ -454,7 +454,7 @@ var TF = function(id)
 		/***(deprecated: backward compatibility) ***/
 		this.hasBindScript =		f.bind_script ? true : false; //imports external script
 		this.bindScript =			(this.hasBindScript) ? f.bind_script : null;
-		
+
 		/*** TF events ***/
 		var o = this;
 		this.Evt = {
@@ -470,7 +470,7 @@ var TF = function(id)
 				resetpagelength: 'ResetPageLength',
 				sort: 'Sort',
 				loadextensions: 'LoadExtensions',
-				loadthemes: 'LoadThemes'			
+				loadthemes: 'LoadThemes'
 			},
 			_DetectKey: function(e)
 			/*====================================================
@@ -489,16 +489,16 @@ var TF = function(id)
 						o._Filter();
 						tf_CancelEvent(evt);
 						tf_StopEvent(evt);
-					} else { 
+					} else {
 						o.isUserTyping = true;
 						window.clearInterval(o.onKeyUpTimer);
-						o.onKeyUpTimer = undefined; 
+						o.onKeyUpTimer = undefined;
 					}
 				}//if evt
 			},
 			_OnKeyUp: function(e)
 			/*====================================================
-				- onkeyup event for text filters 
+				- onkeyup event for text filters
 				(onKeyUp property)
 			=====================================================*/
 			{
@@ -507,7 +507,7 @@ var TF = function(id)
 				var key=(evt.charCode)?evt.charCode:
 						((evt.keyCode)?evt.keyCode:((evt.which)?evt.which:0));
 				o.isUserTyping = false;
-				
+
 				if(key!=13 && key!=9 && key!=27 && key!=38 && key!=40)
 				{
 					function filter()
@@ -517,19 +517,19 @@ var TF = function(id)
 						if(!o.isUserTyping)
 						{
 							o.Filter();
-							o.isUserTyping = null;			
+							o.isUserTyping = null;
 						}
 					}
 					if(o.onKeyUpTimer==undefined)
 						o.onKeyUpTimer = window.setInterval(filter, o.onKeyUpDelay);
-				} else { 
-					window.clearInterval(o.onKeyUpTimer); 
-					o.onKeyUpTimer = undefined; 
+				} else {
+					window.clearInterval(o.onKeyUpTimer);
+					o.onKeyUpTimer = undefined;
 				}
 			},
 			_OnKeyDown: function(e)
 			/*====================================================
-				- onkeydown event for input filters 
+				- onkeydown event for input filters
 				(onKeyUp property)
 			=====================================================*/
 			{
@@ -542,12 +542,12 @@ var TF = function(id)
 			=====================================================*/
 			{
 				if(o.onKeyUp){
-					o.isUserTyping = false; 
+					o.isUserTyping = false;
 					window.clearInterval(o.onKeyUpTimer);
 				}
 				//Watermark
-				if(this.value == '' && o.inpWatermark != ''){ 
-					this.value = (o.isInpWatermarkArray) 
+				if(this.value == '' && o.inpWatermark != ''){
+					this.value = (o.isInpWatermarkArray)
 						? o.inpWatermark[this.getAttribute('ct')]  : o.inpWatermark;
 					tf_AddClass(this, o.inpWatermarkCssClass);
 				}
@@ -566,13 +566,13 @@ var TF = function(id)
 				o.activeFlt = tf_Id(o.activeFilterId);
 				//Watermark
 				if(!o.isInpWatermarkArray){
-					if(this.value == o.inpWatermark && o.inpWatermark != ''){					
-						this.value = ''; 
+					if(this.value == o.inpWatermark && o.inpWatermark != ''){
+						this.value = '';
 						tf_RemoveClass(this, o.inpWatermarkCssClass);
 					}
 				} else {
 					var inpWatermark = o.inpWatermark[this.getAttribute('ct')];
-					if(this.value == inpWatermark && inpWatermark != ''){ 
+					if(this.value == inpWatermark && inpWatermark != ''){
 						this.value = '';
 						tf_RemoveClass(this, o.inpWatermarkCssClass);
 					}
@@ -611,8 +611,8 @@ var TF = function(id)
 			=====================================================*/
 			{
 				//Checks filter is a checklist and caller is not null
-				if(o.activeFlt && o.activeFlt.getAttribute('colIndex') && 
-					o['col'+o.activeFlt.getAttribute('colIndex')]==o.fltTypeCheckList && 
+				if(o.activeFlt && o.activeFlt.getAttribute('colIndex') &&
+					o['col'+o.activeFlt.getAttribute('colIndex')]==o.fltTypeCheckList &&
 					!o.Evt._OnSlcChange.caller) return;
 				var evt = e || window.event;
 				if(o.popUpFilters) tf_StopEvent(evt);
@@ -656,7 +656,7 @@ var TF = function(id)
 			_OnCheckListBlur: function(e){},
 			_OnBtnClick: function()
 			/*====================================================
-				- onclick event for validation button 
+				- onclick event for validation button
 				(btn property)
 			=====================================================*/
 			{
@@ -669,8 +669,8 @@ var TF = function(id)
 				IE only
 			=====================================================*/
 			{
-				this.firstChild.disabled = false;							
-				this.firstChild.focus();							
+				this.firstChild.disabled = false;
+				this.firstChild.focus();
 				this.onclick = null;
 			},
 			_Clear: function()
@@ -695,20 +695,20 @@ var TF = function(id)
 			}
 		};
 
-    }//if tbl!=null		
+    }//if tbl!=null
 }
 
 TF.prototype = {
-	
+
 	AddGrid: function()
 	{
 		this._AddGrid();
 	}, Init : function(){ this.AddGrid(); }, Initialize : function(){ this.AddGrid(); },
 	init : function(){ this.AddGrid(); }, initialize : function(){ this.AddGrid(); },
-	
+
 	_AddGrid: function()
 	/*====================================================
-		- adds row with filtering grid bar and sets grid 
+		- adds row with filtering grid bar and sets grid
 		behaviours and layout
 	=====================================================*/
 	{
@@ -722,7 +722,7 @@ TF.prototype = {
 		//loads stylesheet if not imported
 		//Issues with browsers != IE, IE rules in this case
 		this.IncludeFile(this.stylesheetId, this.stylesheet, null, 'link');
-		
+
 		//loads theme
 		if(this.hasThemes) this._LoadThemes();
 
@@ -733,21 +733,21 @@ TF.prototype = {
 			//Once grid generated 1st filterable row is 0 again
 			this.refRow = (tf_isIE || tf_isIE7) ? (this.refRow+1) : 0;
 		}
-				
+
 		if(this.loader) this.SetLoader();
-	
+
 		if(this.popUpFilters){ if(!this.isFirstLoad && !this.gridLayout){ this.headersRow--; } this.SetPopupFilterIcons(); }
-	
+
 		if(this.hasResultsPerPage)
-		{ 
-			this.resultsPerPage = f['results_per_page']!=undefined   
+		{
+			this.resultsPerPage = f['results_per_page']!=undefined
 				? f['results_per_page'] : this.resultsPerPage;
 			if(this.resultsPerPage.length<2)
 				this.hasResultsPerPage = false;
 			else
 				this.pagingLength = this.resultsPerPage[1][0];
 		}
-		
+
 		if(!this.fltGrid)
 		{//filters grid is not genetared
 			this.refRow = (this.refRow-1);
@@ -766,40 +766,40 @@ TF.prototype = {
 					else
 						fltrow = this.tbl.insertRow(this.filtersRowIndex);
 
-					if(this.headersRow>1 && this.filtersRowIndex <= this.headersRow && !this.popUpFilters) this.headersRow++;  
+					if(this.headersRow>1 && this.filtersRowIndex <= this.headersRow && !this.popUpFilters) this.headersRow++;
 					if(this.popUpFilters) this.headersRow++;
-					
+
 					if(this.fixedHeaders) this.SetFixedHeaders();
-					
+
 					fltrow.className = this.fltsRowCssClass;
 					//Disable for grid_layout
 					if(this.isExternalFlt && (!this.gridLayout || this.popUpFilters)) fltrow.style.display = 'none';
 				}
-				
+
 				this.nbFilterableRows = this.GetRowsNb();
 				this.nbVisibleRows = this.nbFilterableRows;
 				this.nbRows = this.tbl.rows.length;
-				
+
 				for(var i=0; i<n; i++){// this loop adds filters
 					var fltcell = tf_CreateElm(this.fltCellTag);
 					if(this.singleSearchFlt) fltcell.colSpan = this.nbCells;
 					if(!this.gridLayout) fltrow.appendChild(fltcell);
 					inpclass = (i==n-1 && this.displayBtn) ? this.fltSmallCssClass : this.fltCssClass;
-					
+
 					if(this.popUpFilters) this.SetPopupFilter(i);
-					
+
 					if(this['col'+i]==undefined)
-						this['col'+i] = (f['col_'+i]==undefined) 
+						this['col'+i] = (f['col_'+i]==undefined)
 							? this.fltTypeInp : f['col_'+i].tf_LCase();
-							
+
 					if(this.singleSearchFlt)
 					{//only 1 input for single search
 						this['col'+i] = this.fltTypeInp;
 						inpclass = this.singleFltCssClass;
 					}
-	
+
 					if(this['col'+i]==this.fltTypeSlc || this['col'+i]==this.fltTypeMulti)
-					{//selects					
+					{//selects
 						var slc = tf_CreateElm(this.fltTypeSlc,
 							['id',this.prfxFlt+i+'_'+this.id],
 							['ct',i],['filled','0']);
@@ -808,9 +808,9 @@ TF.prototype = {
 							slc.multiple = this.fltTypeMulti;
 							slc.title = this.multipleSlcTooltip;
 						}
-						slc.className = (this['col'+i].tf_LCase()==this.fltTypeSlc) 
+						slc.className = (this['col'+i].tf_LCase()==this.fltTypeSlc)
 							? inpclass : this.fltMultiCssClass;// for ie<=6
-						
+
 						if(this.isExternalFlt && this.externalFltTgtIds && tf_Id(this.externalFltTgtIds[i]))
 						{//filter is appended in desired element
 							tf_Id(this.externalFltTgtIds[i]).appendChild(slc);
@@ -818,27 +818,27 @@ TF.prototype = {
 						} else {
 							fltcell.appendChild(slc);
 						}
-						
+
 						this.fltIds.push(this.prfxFlt+i+'_'+this.id);
-						
+
 						if(!this.fillSlcOnDemand) this._PopulateSelect(i);
-						
+
 						slc.onkeypress = this.Evt._DetectKey;
 						slc.onchange = this.Evt._OnSlcChange;
 						slc.onfocus = this.Evt._OnSlcFocus;
 						slc.onblur = this.Evt._OnSlcBlur;
-						
+
 						if(this.fillSlcOnDemand)
 						{//1st option is created here since PopulateSelect isn't invoked
 							var opt0 = tf_CreateOpt(this.displayAllText,'');
-							slc.appendChild(opt0);						
+							slc.appendChild(opt0);
 						}
-						
+
 						/* 	Code below for IE: it prevents select options to
 							slide out before select it-self is populated.
 							This is an unexpeted behavior for users since at
-							1st click options are empty. Work around: 
-							select is disabled and by clicking on element 
+							1st click options are empty. Work around:
+							select is disabled and by clicking on element
 							(parent td), users enable drop-down and select is
 							populated at same time.  */
 						if(this.fillSlcOnDemand && tf_isIE)
@@ -850,14 +850,14 @@ TF.prototype = {
 								this.__deferMultipleSelection(slc,0);
 						}
 					}
-					
+
 					else if(this['col'+i]==this.fltTypeCheckList)
 					{// checklist
 						var divCont = tf_CreateElm('div',
 										['id',this.prfxCheckListDiv+i+'_'+this.id],
 										['ct',i],['filled','0']);
 						divCont.className = this.checkListDivCssClass;
-						
+
 						if(this.isExternalFlt && this.externalFltTgtIds
 							&& tf_Id(this.externalFltTgtIds[i]))
 						{//filter is appended in desired element
@@ -866,31 +866,31 @@ TF.prototype = {
 						} else {
 							fltcell.appendChild(divCont);
 						}
-						
+
 						this.checkListDiv[i] = divCont;
 						this.fltIds.push(this.prfxFlt+i+'_'+this.id);
 						if(!this.fillSlcOnDemand) this._PopulateCheckList(i);
-						
+
 						divCont.onclick = this.Evt._OnCheckListFocus;
-						
+
 						if(this.fillSlcOnDemand)
 						{
 							divCont.onclick = this.Evt._OnCheckListClick;
 							divCont.appendChild(tf_CreateText(this.activateCheckListTxt));
 						}
 					}
-					
+
 					else
 					{
 						var inptype;
-						(this['col'+i]==this.fltTypeInp) ? inptype='text' : inptype='hidden';//show/hide input	
-						var inp = tf_CreateElm(this.fltTypeInp,['id',this.prfxFlt+i+'_'+this.id],['type',inptype],['ct',i]);	
+						(this['col'+i]==this.fltTypeInp) ? inptype='text' : inptype='hidden';//show/hide input
+						var inp = tf_CreateElm(this.fltTypeInp,['id',this.prfxFlt+i+'_'+this.id],['type',inptype],['ct',i]);
 						if(inptype!='hidden')
 							inp.value = (this.isInpWatermarkArray) ? this.inpWatermark[i] : this.inpWatermark;
 						inp.className = inpclass;// for ie<=6
 						if(this.inpWatermark!='') tf_AddClass(inp, this.inpWatermarkCssClass); //watermark css class
 						inp.onfocus = this.Evt._OnInpFocus;
-						
+
 						if(this.isExternalFlt && this.externalFltTgtIds && tf_Id(this.externalFltTgtIds[i]))
 						{//filter is appended in desired element
 							tf_Id(this.externalFltTgtIds[i]).appendChild(inp);
@@ -898,46 +898,46 @@ TF.prototype = {
 						} else {
 							fltcell.appendChild(inp);
 						}
-						
+
 						this.fltIds.push(this.prfxFlt+i+'_'+this.id);
-						
+
 						inp.onkeypress = this.Evt._DetectKey;
 						inp.onkeydown = this.Evt._OnKeyDown;
 						inp.onkeyup = this.Evt._OnKeyUp;
 						inp.onblur = this.Evt._OnInpBlur;
-						
+
 						if(this.rememberGridValues)
 						{
 							var flts = tf_ReadCookie(this.fltsValuesCookie); //reads the cookie
 							var reg = new RegExp(this.separator,'g');
 							var flts_values = flts.split(reg); //creates an array with filters' values
 							if(flts_values[i]!=' ')
-								this.SetFilterValue(i,flts_values[i],false);					
+								this.SetFilterValue(i,flts_values[i],false);
 						}
 					}
-					
+
 					if(i==n-1 && this.displayBtn)// this adds validation button
 					{
 						var btn = tf_CreateElm(this.fltTypeInp,['id',this.prfxValButton+i+'_'+this.id],
 												['type','button'], ['value',this.btnText]);
 						btn.className = this.btnCssClass;
-						
-						if(this.isExternalFlt && this.externalFltTgtIds && tf_Id(this.externalFltTgtIds[i])) 
+
+						if(this.isExternalFlt && this.externalFltTgtIds && tf_Id(this.externalFltTgtIds[i]))
 						//filter is appended in desired element
 							tf_Id(this.externalFltTgtIds[i]).appendChild(btn);
 						else
 							fltcell.appendChild(btn);
-						
-						btn.onclick = this.Evt._OnBtnClick;				
+
+						btn.onclick = this.Evt._OnBtnClick;
 					}//if
-					
+
 				}// for i
-				
+
 			} else {
-				this.__resetGrid();			
+				this.__resetGrid();
 			}//if isFirstLoad
 		}//if this.fltGrid
-		
+
 		/* Filter behaviours */
 		if(this.rowsCounter) this.SetRowsCounter();
 		if(this.statusBar) this.SetStatusBar();
@@ -946,7 +946,7 @@ TF.prototype = {
 		if(this.hasResultsPerPage && this.paging) this.SetResultsPerPage();
 		if(this.btnReset) this.SetResetBtn();
 		if(this.helpInstructions) this.SetHelpInstructions();
-		
+
 		if(this.hasColWidth && !this.gridLayout) this.SetColWidths();
 
 		if(this.alternateBgs && this.isStartBgAlternate)
@@ -973,30 +973,30 @@ TF.prototype = {
 			}
 		}//if bindScript
 		/* */
-		
+
 		this.isFirstLoad = false;
 		this.hasGrid = true;
-		
+
 		if(this.rememberGridValues || this.rememberPageLen || this.rememberPageNb)
 			this.ResetValues();
-		
+
 		//TF css class is added to table
-		if(!this.gridLayout) tf_AddClass(this.tbl, this.prfxTf); 
-		
+		if(!this.gridLayout) tf_AddClass(this.tbl, this.prfxTf);
+
 		if(this.loader) this.ShowLoader('none');
 
 		/* Loads extensions */
-		if(this.hasExtensions) this.LoadExtensions();		
-		
+		if(this.hasExtensions) this.LoadExtensions();
+
 		if(this.onFiltersLoaded)
 			this.onFiltersLoaded.call(null,this);
 
 	},// AddGrid
-	
+
 	EvtManager: function(evt,s)
 	/*====================================================
 		- TF events manager
-		- Params: 
+		- Params:
 			- event name (string)
 			- config object (optional literal object)
 	=====================================================*/
@@ -1011,13 +1011,13 @@ TF.prototype = {
 			switch(evt)
 			{
 				case o.Evt.name.filter:
-					(o.isModFilterFn) 
+					(o.isModFilterFn)
 						? o.modFilterFn.call(null,o)
 						: o._Filter();
 				break;
 				case o.Evt.name.populateselect:
-					(o.refreshFilters) 
-						? o._PopulateSelect(slcIndex,true) 
+					(o.refreshFilters)
+						? o._PopulateSelect(slcIndex,true)
 						: o._PopulateSelect(slcIndex,false,slcExternal,slcId);
 				break;
 				case o.Evt.name.populatechecklist:
@@ -1027,14 +1027,14 @@ TF.prototype = {
 					o._ChangePage(pgIndex);
 				break;
 				case o.Evt.name.clear:
-					o._ClearFilters(); 
+					o._ClearFilters();
 					o._Filter();
 				break;
 				case o.Evt.name.changeresultsperpage:
 					o._ChangeResultsPerPage();
 				break;
 				case o.Evt.name.resetvalues:
-					o._ResetValues();					
+					o._ResetValues();
 					o._Filter();
 				break;
 				case o.Evt.name.resetpage:
@@ -1069,13 +1069,13 @@ TF.prototype = {
 			window.setTimeout(efx,this.execDelay);
 		} else efx();
 	},
-	
+
 	ImportModule: function(module)
 	{
 		if(!module.path || !module.name) return;
 		this.IncludeFile(module.name, module.path, module.init);
 	},
-	
+
 	LoadExtensions : function()
 	{
 		if(!this.Ext){
@@ -1088,7 +1088,7 @@ TF.prototype = {
 					var file = extPath.split('/')[extPath.split('/').length-1];
 					var re = new RegExp(file);
 					var path = extPath.replace(re,'');
-					o.Ext.list[extName] = { 
+					o.Ext.list[extName] = {
 						name: extName,
 						description: extDesc,
 						file: file,
@@ -1100,7 +1100,7 @@ TF.prototype = {
 		}
 		this.EvtManager(this.Evt.name.loadextensions);
 	},
-	
+
 	_LoadExtensions : function()
 	/*====================================================
 		- loads TF extensions
@@ -1114,20 +1114,20 @@ TF.prototype = {
 				var extName = ext.name[e];
 				var extInit = (ext.initialize && ext.initialize[e]) ? ext.initialize[e] : null;
 				var extDesc = (ext.description && ext.description[e] ) ? ext.description[e] : null;
-				
-				//Registers extension 
+
+				//Registers extension
 				this.Ext.add(extName, extDesc, extPath, extInit);
 				if(tf_IsImported(extPath)) extInit.call(null,this);
 				else this.IncludeFile(extName, extPath, extInit);
 			}
 		}
 	},
-	
+
 	LoadThemes: function()
 	{
 		this.EvtManager(this.Evt.name.loadthemes);
 	},
-	
+
 	_LoadThemes: function()
 	/*====================================================
 		- loads TF themes
@@ -1144,7 +1144,7 @@ TF.prototype = {
 					var file = thmPath.split('/')[thmPath.split('/').length-1];
 					var re = new RegExp(file);
 					var path = thmPath.replace(re,'');
-					o.Thm.list[thmName] = { 
+					o.Thm.list[thmName] = {
 						name: thmName,
 						description: thmDesc,
 						file: file,
@@ -1154,11 +1154,11 @@ TF.prototype = {
 				}
 			};
 		}
-		
+
 		if(this.enableDefaultTheme){//Default theme config
 			this.themes = {
 				name:['DefaultTheme'],
-				src:[this.themesPath+'Default/TF_Default.css'], 
+				src:[this.themesPath+'Default/TF_Default.css'],
 				description:['Default Theme']
 			};
 			this.Thm.add('DefaultTheme', this.themesPath+'Default/TF_Default.css', 'Default Theme');
@@ -1170,33 +1170,33 @@ TF.prototype = {
 				var thmName = thm.name[i];
 				var thmInit = (thm.initialize && thm.initialize[i]) ? thm.initialize[i] : null;
 				var thmDesc = (thm.description && thm.description[i] ) ? thm.description[i] : null;
-				
-				//Registers theme 
+
+				//Registers theme
 				this.Thm.add(thmName, thmDesc, thmPath, thmInit);
-				
-				if(!tf_IsImported(thmPath,'link')) 
+
+				if(!tf_IsImported(thmPath,'link'))
 					this.IncludeFile(thmName, thmPath, null, 'link');
 				if(tf_IsFn(thmInit)) thmInit.call(null,this);
 			}
 		}
-		
+
 		//Some elements need to be overriden for theme
 		//Reset button
 		this.btnResetText = null;
 		this.btnResetHtml = '<input type="button" value="" class="'+this.btnResetCssClass+'" title="Clear filters" />';
-		
-		//Paging buttons		
+
+		//Paging buttons
 		this.btnPrevPageHtml = '<input type="button" value="" class="'+this.btnPageCssClass+' previousPage" title="Previous page" />';
 		this.btnNextPageHtml = '<input type="button" value="" class="'+this.btnPageCssClass+' nextPage" title="Next page" />';
 		this.btnFirstPageHtml = '<input type="button" value="" class="'+this.btnPageCssClass+' firstPage" title="First page" />';
 		this.btnLastPageHtml = '<input type="button" value="" class="'+this.btnPageCssClass+' lastPage" title="Last page" />';
-		
+
 		//Loader
 		this.loader = true;
 		this.loaderHtml = '<div class="defaultLoader"></div>';
 		this.loaderText = null;
 	},
-	
+
 	RemoveGrid: function()
 	/*====================================================
 		- removes a filter grid
@@ -1220,31 +1220,34 @@ TF.prototype = {
 			if(this.popUpFilters) this.RemovePopupFilters();
 			if(this.markActiveColumns) this.ClearActiveColumns();
 			if(this.editable || this.selectable) this.RemoveEditable();
-			
+
 			for(var j=this.refRow; j<this.nbRows; j++)
-			{//this loop shows all rows and removes validRow attribute			
+			{//this loop shows all rows and removes validRow attribute
+				if(rows[j] === null) {
+					continue;
+				}
 				rows[j].style.display = '';
 				try
-				{ 
-					if(rows[j].hasAttribute('validRow')) 
+				{
+					if(rows[j].hasAttribute('validRow'))
 						rows[j].removeAttribute('validRow');
 				} //ie<=6 doesn't support hasAttribute method
 				catch(e){
-					for(var x = 0; x < rows[j].attributes.length; x++) 
+					for(var x = 0; x < rows[j].attributes.length; x++)
 					{
-						if(rows[j].attributes[x].nodeName.tf_LCase()=='validrow') 
+						if(rows[j].attributes[x].nodeName.tf_LCase()=='validrow')
 							rows[j].removeAttribute('validRow');
 					}//for x
 				}//catch(e)
-				
+
 				//removes alterning colors
 				if(this.alternateBgs) this.RemoveRowBg(j);
-				
+
 			}//for j
-	
+
 			if(this.fltGrid && !this.gridLayout)
 			{
-				this.fltGridEl = rows[this.filtersRowIndex];			
+				this.fltGridEl = rows[this.filtersRowIndex];
 				this.tbl.deleteRow(this.filtersRowIndex);
 			}
 			if(this.gridLayout) this.RemoveGridLayout();
@@ -1252,10 +1255,10 @@ TF.prototype = {
 			this.activeFlt = null;
 			this.isStartBgAlternate = true;
 			this.hasGrid = false;
-	
+
 		}//if this.fltGrid
 	},
-	
+
 	SetTopDiv: function()
 	/*====================================================
 		- Generates div above table where paging,
@@ -1263,11 +1266,11 @@ TF.prototype = {
 	=====================================================*/
 	{
 		if(this.infDiv!=null) return;
-	
+
 		/*** container div ***/
 		var infdiv = tf_CreateElm('div',['id',this.prfxInfDiv+this.id]);
 		infdiv.className = this.infDivCssClass;// setAttribute method doesn't seem to work on ie<=6
-		
+
 		if(this.toolBarTgtId) //custom container
 			tf_Id(this.toolBarTgtId).appendChild(infdiv);
 		else if(this.fixedHeaders && this.contDiv) //fixed headers
@@ -1279,29 +1282,29 @@ TF.prototype = {
 		else //default location: above table
 			this.tbl.parentNode.insertBefore(infdiv, this.tbl);
 		this.infDiv = tf_Id(this.prfxInfDiv+this.id);
-		
+
 		/*** left div containing rows # displayer ***/
 		var ldiv = tf_CreateElm('div',['id',this.prfxLDiv+this.id]);
 		ldiv.className = this.lDivCssClass;/*'ldiv'*/;
 		infdiv.appendChild(ldiv);
-		this.lDiv = tf_Id(this.prfxLDiv+this.id);		
-		
-		/*** 	right div containing reset button 
-				+ nb results per page select 	***/	
+		this.lDiv = tf_Id(this.prfxLDiv+this.id);
+
+		/*** 	right div containing reset button
+				+ nb results per page select 	***/
 		var rdiv = tf_CreateElm('div',['id',this.prfxRDiv+this.id]);
 		rdiv.className = this.rDivCssClass/*'rdiv'*/;
 		infdiv.appendChild(rdiv);
 		this.rDiv = tf_Id(this.prfxRDiv+this.id);
-		
+
 		/*** mid div containing paging elements ***/
 		var mdiv = tf_CreateElm('div',['id',this.prfxMDiv+this.id]);
-		mdiv.className = this.mDivCssClass/*'mdiv'*/;						
+		mdiv.className = this.mDivCssClass/*'mdiv'*/;
 		infdiv.appendChild(mdiv);
 		this.mDiv = tf_Id(this.prfxMDiv+this.id);
-		
+
 		if(this.helpInstructions==null) this.SetHelpInstructions();
 	},
-	
+
 	RemoveTopDiv: function()
 	/*====================================================
 		- Removes div above table where paging,
@@ -1312,7 +1315,7 @@ TF.prototype = {
 		this.infDiv.parentNode.removeChild(this.infDiv);
 		this.infDiv = null;
 	},
-	
+
 	RemoveExternalFlts: function()
 	/*====================================================
 		- removes external filters
@@ -1323,7 +1326,7 @@ TF.prototype = {
 			if(tf_Id(this.externalFltTgtIds[ct]))
 				tf_Id(this.externalFltTgtIds[ct]).innerHTML = '';
 	},
-	
+
 	SetLoader: function()
 	/*====================================================
 		- generates loader div
@@ -1346,28 +1349,28 @@ TF.prototype = {
 		var containerDiv = tf_CreateElm( 'div',['id',this.prfxLoader+this.id] );
 		containerDiv.className = this.loaderCssClass;// for ie<=6
 		//containerDiv.style.display = 'none';
-		var targetEl = (this.loaderTgtId==null) 
+		var targetEl = (this.loaderTgtId==null)
 			? (this.gridLayout ? this.tblCont : this.tbl.parentNode) : tf_Id( this.loaderTgtId );
 		if(this.loaderTgtId==null) targetEl.insertBefore(containerDiv, this.tbl);
 		else targetEl.appendChild( containerDiv );
 		this.loaderDiv = tf_Id(this.prfxLoader+this.id);
-		if(this.loaderHtml==null) 
+		if(this.loaderHtml==null)
 			this.loaderDiv.appendChild( tf_CreateText(this.loaderText) );
 		else this.loaderDiv.innerHTML = this.loaderHtml;
 	},
-	
+
 	RemoveLoader: function()
 	/*====================================================
 		- removes loader div
 	=====================================================*/
 	{
 		if( this.loaderDiv==null ) return;
-		var targetEl = (this.loaderTgtId==null) 
+		var targetEl = (this.loaderTgtId==null)
 			? (this.gridLayout ? this.tblCont : this.tbl.parentNode) : tf_Id( this.loaderTgtId );
 		targetEl.removeChild(this.loaderDiv);
 		this.loaderDiv = null;
 	},
-	
+
 	ShowLoader: function(p)
 	/*====================================================
 		- displays/hides loader div
@@ -1376,23 +1379,23 @@ TF.prototype = {
 		if(!this.loader || !this.loaderDiv) return;
 		if(this.loaderDiv.style.display==p) return;
 		var o = this;
-	
-		function displayLoader(){ 
+
+		function displayLoader(){
 			if(!o.loaderDiv) return;
-			if(o.onShowLoader && p!='none') 
+			if(o.onShowLoader && p!='none')
 				o.onShowLoader.call(null,o);
 			o.loaderDiv.style.display = p;
-			if(o.onHideLoader && p=='none') 
+			if(o.onHideLoader && p=='none')
 				o.onHideLoader.call(null,o);
 		}
-	
+
 		var t = (p=='none') ? this.loaderCloseDelay : 1;
 		window.setTimeout(displayLoader,t);
 	},
-	
+
 	SetSort: function()
 	/*====================================================
-		- Sets sorting feature by loading 
+		- Sets sorting feature by loading
 		WebFX Sortable Table 1.12 by Erik Arvidsson
 		and TF adapter by Max Guglielmi
 	=====================================================*/
@@ -1416,13 +1419,13 @@ TF.prototype = {
 					);
 			}
 		}
-	
+
 		if(tf_IsImported(this.sortConfig.src))
 			this.Evt._EnableSort();
 		else
 			this.IncludeFile(
-				this.sortConfig.name, 
-				this.sortConfig.src, 
+				this.sortConfig.name,
+				this.sortConfig.src,
 				this.Evt._EnableSort
 			);
 	},
@@ -1434,17 +1437,17 @@ TF.prototype = {
 	{
 		if(!this.sort) return;
 		this.sort = false;
-		//this.isSortEnabled = false;		
+		//this.isSortEnabled = false;
 	},
-	
+
 	Sort: function()
 	{
 		this.EvtManager(this.Evt.name.sort);
 	},
-	
+
 	SetEditable: function()
 	/*====================================================
-		- Sets selection or edition features by loading 
+		- Sets selection or edition features by loading
 		ezEditTable script by Max Guglielmi
 	=====================================================*/
 	{
@@ -1452,20 +1455,20 @@ TF.prototype = {
 			this._EnableEditable();
 		} else {
 			this.IncludeFile(
-				this.ezEditTableConfig.name, 
-				this.ezEditTableConfig.src, 
+				this.ezEditTableConfig.name,
+				this.ezEditTableConfig.src,
 				this._EnableEditable
 			);
 		}
 		if(this.ezEditTableConfig.loadStylesheet && !tf_IsImported(this.ezEditTableConfig.stylesheet, 'link')){
 			this.IncludeFile(
-				this.ezEditTableConfig.stylesheetName, 
-				this.ezEditTableConfig.stylesheet, 
+				this.ezEditTableConfig.stylesheetName,
+				this.ezEditTableConfig.stylesheet,
 				null, 'link'
 			);
 		}
 	},
-	
+
 	RemoveEditable: function()
 	/*====================================================
 		- Removes selection or edition features
@@ -1479,7 +1482,7 @@ TF.prototype = {
 			if(this.editable) this.ezEditTable.Editable.Remove();
 		}
 	},
-	
+
 	ResetEditable: function()
 	/*====================================================
 		- Resets selection or edition features after
@@ -1491,7 +1494,7 @@ TF.prototype = {
 			if(this.editable) this.ezEditTable.Editable.Set();
 		}
 	},
-	
+
 	_EnableEditable: function(o)
 	{
 		if(!o) o = this;
@@ -1499,25 +1502,25 @@ TF.prototype = {
 		var startRow;
 		var thead = tf_Tag(o.tbl,'thead');
 		//if thead exists and startRow not specified, startRow is calculated automatically by EditTable
-		if(thead.length > 0 && !o.ezEditTableConfig.startRow) startRow = undefined; 
+		if(thead.length > 0 && !o.ezEditTableConfig.startRow) startRow = undefined;
 		//otherwise startRow config property if any or TableFilter refRow
 		else startRow = o.ezEditTableConfig.startRow || o.refRow;
-			
+
 		o.ezEditTableConfig.scroll_into_view = o.ezEditTableConfig.scroll_into_view!=undefined ? o.ezEditTableConfig.scroll_into_view : true;
 		o.ezEditTableConfig.base_path = o.ezEditTableConfig.base_path!=undefined ? o.ezEditTableConfig.base_path : o.basePath + 'ezEditTable/';
 		o.ezEditTableConfig.editable = o.editable = o.fObj.editable;
 		o.ezEditTableConfig.selection = o.selectable = o.fObj.selectable;
-		
+
 		if(o.selectable)
 	   		o.ezEditTableConfig.default_selection = o.ezEditTableConfig.default_selection!=undefined ? o.ezEditTableConfig.default_selection : 'row';
 		//CSS Styles
 	  	o.ezEditTableConfig.active_cell_css = o.ezEditTableConfig.active_cell_css!=undefined ? o.ezEditTableConfig.active_cell_css : 'ezETSelectedCell';
-		
+
 		o._lastValidRowIndex = 0;
-		o._lastRowIndex = 0;	
-		
+		o._lastRowIndex = 0;
+
 		if(o.selectable){
-			//Row navigation needs to be calculated according to TableFilter's validRowsIndex array 
+			//Row navigation needs to be calculated according to TableFilter's validRowsIndex array
 			function onAfterSelection(et, selecteElm, e){
 				if(!o.validRowsIndex) return; //table is not filtered
 				var row = et.defaultSelection != 'row' ? selecteElm.parentNode : selecteElm;
@@ -1528,8 +1531,8 @@ TF.prototype = {
 				var d = (keyCode == 34 || keyCode == 33 ? (o.pagingLength || et.nbRowsPerPage) : 1); //pgup/pgdown keys
 
 				//If next row is not valid, next valid filtered row needs to be calculated
-				if(!isRowValid){					
-					//Selection direction up/down		
+				if(!isRowValid){
+					//Selection direction up/down
 					if(row.rowIndex>o._lastRowIndex){
 						if(row.rowIndex >= o.validRowsIndex[o.validRowsIndex.length-1]) //last row
 							nextRowIndex = o.validRowsIndex[o.validRowsIndex.length-1];
@@ -1541,16 +1544,16 @@ TF.prototype = {
 						}
 					} else{
 						if(row.rowIndex <= o.validRowsIndex[0]) nextRowIndex = o.validRowsIndex[0];//first row
-						else{ 
+						else{
 							var v = o.validRowsIndex[o._lastValidRowIndex - d];
 							nextRowIndex = v ? v : o.validRowsIndex[0];
 						}
 					}
 					o._lastRowIndex = row.rowIndex;
-					DoSelection(nextRowIndex);				
+					DoSelection(nextRowIndex);
 				} else{
 					//If filtered row is valid, special calculation for pgup/pgdown keys
-					if(keyCode!=34 && keyCode!=33){						
+					if(keyCode!=34 && keyCode!=33){
 						o._lastValidRowIndex = o.validRowsIndex.tf_IndexByValue(row.rowIndex);
 						o._lastRowIndex = row.rowIndex;
 					} else {
@@ -1566,13 +1569,13 @@ TF.prototype = {
 						o._lastRowIndex = nextRowIndex;
 						o._lastValidRowIndex = o.validRowsIndex.tf_IndexByValue(nextRowIndex);
 						DoSelection(nextRowIndex);
-					}					
+					}
 				}
 
 				//Next valid filtered row needs to be selected
 				function DoSelection(nextRowIndex){
-					if(et.defaultSelection == 'row'){ 
-						et.Selection.SelectRowByIndex(nextRowIndex);						
+					if(et.defaultSelection == 'row'){
+						et.Selection.SelectRowByIndex(nextRowIndex);
 					} else {
 						et.ClearSelections();
 						var cellIndex = selecteElm.cellIndex;
@@ -1590,9 +1593,9 @@ TF.prototype = {
 							else cell.scrollIntoView(false);
 						}
 					}
-				}	
+				}
 			}
-			
+
 			//Page navigation has to be enforced whenever selected row is out of the current page range
 			function onBeforeSelection(et, selecteElm, e){
 				var row = et.defaultSelection != 'row' ? selecteElm.parentNode : selecteElm;
@@ -1608,7 +1611,7 @@ TF.prototype = {
 					}
 				}
 			}
-			
+
 			//Selected row needs to be visible when paging is activated
 			if(o.paging){
 				o.onAfterChangePage = function(tf, i){
@@ -1618,28 +1621,28 @@ TF.prototype = {
 					if(cell) cell.scrollIntoView(false);
 				}
 			}
-			
+
 			//Rows navigation when rows are filtered is performed with the EditTable row selection callback events
 			if(o.ezEditTableConfig.default_selection=='row'){
 				var fnB = o.ezEditTableConfig.on_before_selected_row;
-				o.ezEditTableConfig.on_before_selected_row = function(){ 
-					onBeforeSelection(arguments[0], arguments[1], arguments[2]); 
+				o.ezEditTableConfig.on_before_selected_row = function(){
+					onBeforeSelection(arguments[0], arguments[1], arguments[2]);
 					if(fnB) fnB.call(null, arguments[0], arguments[1], arguments[2]);
 				};
 				var fnA = o.ezEditTableConfig.on_after_selected_row;
-				o.ezEditTableConfig.on_after_selected_row = function(){ 
-					onAfterSelection(arguments[0], arguments[1], arguments[2]); 
+				o.ezEditTableConfig.on_after_selected_row = function(){
+					onAfterSelection(arguments[0], arguments[1], arguments[2]);
 					if(fnA) fnA.call(null, arguments[0], arguments[1], arguments[2]);
 				};
-			} else { 
+			} else {
 				var fnB = o.ezEditTableConfig.on_before_selected_cell;
-				o.ezEditTableConfig.on_before_selected_cell = function(){ 
-					onBeforeSelection(arguments[0], arguments[1], arguments[2]); 
+				o.ezEditTableConfig.on_before_selected_cell = function(){
+					onBeforeSelection(arguments[0], arguments[1], arguments[2]);
 					if(fnB) fnB.call(null, arguments[0], arguments[1], arguments[2]);
 				};
 				var fnA = o.ezEditTableConfig.on_after_selected_cell;
-				o.ezEditTableConfig.on_after_selected_cell = function(){ 
-					onAfterSelection(arguments[0], arguments[1], arguments[2]); 
+				o.ezEditTableConfig.on_after_selected_cell = function(){
+					onAfterSelection(arguments[0], arguments[1], arguments[2]);
 					if(fnA) fnA.call(null, arguments[0], arguments[1], arguments[2]);
 				};
 			}
@@ -1649,10 +1652,10 @@ TF.prototype = {
 			var fnC = o.ezEditTableConfig.on_added_dom_row;
 			o.ezEditTableConfig.on_added_dom_row = function(){
 				o.nbFilterableRows++;
-				if(!o.paging){ o.RefreshNbRows(); } 
-				else { 
+				if(!o.paging){ o.RefreshNbRows(); }
+				else {
 					o.nbRows++; o.nbVisibleRows++; o.nbFilterableRows++;
-					o.paging=false; o.RemovePaging(); o.AddPaging(false); 
+					o.paging=false; o.RemovePaging(); o.AddPaging(false);
 				}
 				if(o.alternateBgs) o.SetAlternateRows();
 				if(fnC) fnC.call(null, arguments[0], arguments[1], arguments[2]);
@@ -1661,23 +1664,23 @@ TF.prototype = {
 				var fnD = o.ezEditTableConfig.actions['delete'].on_after_submit;
 				o.ezEditTableConfig.actions['delete'].on_after_submit = function(){
 					o.nbFilterableRows--;
-					if(!o.paging){ o.RefreshNbRows(); } 
-					else { 
+					if(!o.paging){ o.RefreshNbRows(); }
+					else {
 						o.nbRows--; o.nbVisibleRows--; o.nbFilterableRows--;
-						o.paging=false; o.RemovePaging(); o.AddPaging(false); 
+						o.paging=false; o.RemovePaging(); o.AddPaging(false);
 					}
 					if(o.alternateBgs) o.SetAlternateRows();
 					if(fnD) fnD.call(null, arguments[0], arguments[1]);
 				}
 			}
 		}
-		
+
 		try{
-			o.ezEditTable = new EditTable(o.id, o.ezEditTableConfig, startRow);	
+			o.ezEditTable = new EditTable(o.id, o.ezEditTableConfig, startRow);
 			o.ezEditTable.Init();
 		} catch(e) { alert(o.ezEditTableConfig.err); }
 	},
-	
+
 	SetPaging: function()
 	/*====================================================
 		- Generates paging elements:
@@ -1689,7 +1692,7 @@ TF.prototype = {
 		if(!this.paging || (!this.isPagingRemoved && !this.isFirstLoad)) return;
 		var f = this.fObj;
 		this.pagingTgtId =			f.paging_target_id!=undefined //id of container element
-										? f.paging_target_id : null;		
+										? f.paging_target_id : null;
 		this.pagingLength =			f.paging_length!=undefined ? f.paging_length : 10; //defines table paging length
 		this.resultsPerPageTgtId =	f.results_per_page_target_id!=undefined //id of container element
 										? f.results_per_page_target_id : null;
@@ -1714,17 +1717,17 @@ TF.prototype = {
 		this.btnFirstPageText =		f.btn_first_page_text!=undefined
 										? f.btn_first_page_text : '|<' ; //defines first page button text
 		this.btnNextPageHtml =		f.btn_next_page_html!=undefined //defines next page button html
-										? f.btn_next_page_html : (!this.enableIcons ? null : 
-										'<input type="button" value="" class="'+this.btnPageCssClass+' nextPage" title="Next page" />'); 
+										? f.btn_next_page_html : (!this.enableIcons ? null :
+										'<input type="button" value="" class="'+this.btnPageCssClass+' nextPage" title="Next page" />');
 		this.btnPrevPageHtml =		f.btn_prev_page_html!=undefined //defines previous page button html
-										? f.btn_prev_page_html : (!this.enableIcons ? null : 
-										'<input type="button" value="" class="'+this.btnPageCssClass+' previousPage" title="Previous page" />'); 
+										? f.btn_prev_page_html : (!this.enableIcons ? null :
+										'<input type="button" value="" class="'+this.btnPageCssClass+' previousPage" title="Previous page" />');
 		this.btnFirstPageHtml =		f.btn_first_page_html!=undefined //defines last page button html
-										? f.btn_first_page_html : (!this.enableIcons ? null : 
-										'<input type="button" value="" class="'+this.btnPageCssClass+' firstPage" title="First page" />'); 
+										? f.btn_first_page_html : (!this.enableIcons ? null :
+										'<input type="button" value="" class="'+this.btnPageCssClass+' firstPage" title="First page" />');
 		this.btnLastPageHtml =		f.btn_last_page_html!=undefined //defines previous page button html
-										? f.btn_last_page_html : (!this.enableIcons ? null : 
-										'<input type="button" value="" class="'+this.btnPageCssClass+' lastPage" title="Last page" />'); 
+										? f.btn_last_page_html : (!this.enableIcons ? null :
+										'<input type="button" value="" class="'+this.btnPageCssClass+' lastPage" title="Last page" />');
 		this.pageText =				f.page_text!=undefined ? f.page_text : ' Page '; //defines text preceeding page selector drop-down
 		this.ofText =				f.of_text!=undefined ? f.of_text : ' of '; //defines text after page selector drop-down
 		this.nbPgSpanCssClass = 	f.nb_pages_css_class!=undefined	? f.nb_pages_css_class :'nbpg'; //css class for span containing tot nb of pages
@@ -1737,42 +1740,42 @@ TF.prototype = {
 		var start_row = this.refRow;
 		var nrows = this.nbRows;
 		this.nbPages = Math.ceil( (nrows-start_row)/this.pagingLength );//calculates page nb
-	
+
 		//Paging elements events
 		if(!this.Evt._Paging.next)
 		{
-			var o = this;		
+			var o = this;
 			this.Evt._Paging = {// paging buttons events
-				slcIndex: function(){ 
-					return (o.pageSelectorType==o.fltTypeSlc) 
-						? o.pagingSlc.options.selectedIndex 
+				slcIndex: function(){
+					return (o.pageSelectorType==o.fltTypeSlc)
+						? o.pagingSlc.options.selectedIndex
 						: parseInt(o.pagingSlc.value)-1;
 				},
-				nbOpts: function(){ 
-					return (o.pageSelectorType==o.fltTypeSlc) 
-					? parseInt(o.pagingSlc.options.length)-1 
+				nbOpts: function(){
+					return (o.pageSelectorType==o.fltTypeSlc)
+					? parseInt(o.pagingSlc.options.length)-1
 					: (o.nbPages-1);
 				},
 				next: function(){
 					if(o.Evt._Paging.nextEvt) o.Evt._Paging.nextEvt();
-					var nextIndex = (o.Evt._Paging.slcIndex()<o.Evt._Paging.nbOpts()) 
+					var nextIndex = (o.Evt._Paging.slcIndex()<o.Evt._Paging.nbOpts())
 						? o.Evt._Paging.slcIndex()+1 : 0;
 					o.ChangePage(nextIndex);
-				},			
+				},
 				prev: function(){
 					if(o.Evt._Paging.prevEvt) o.Evt._Paging.prevEvt();
-					var prevIndex = o.Evt._Paging.slcIndex()>0 
+					var prevIndex = o.Evt._Paging.slcIndex()>0
 						? o.Evt._Paging.slcIndex()-1 : o.Evt._Paging.nbOpts();
 					o.ChangePage(prevIndex);
-				},			
+				},
 				last: function(){
 					if(o.Evt._Paging.lastEvt) o.Evt._Paging.lastEvt();
 					o.ChangePage(o.Evt._Paging.nbOpts());
-				},			
+				},
 				first: function(){
 					if(o.Evt._Paging.firstEvt)  o.Evt._Paging.firstEvt();
 					o.ChangePage(0);
-				},			
+				},
 				_detectKey: function(e)
 				{
 					var evt=(e)?e:(window.event)?window.event:null;
@@ -1780,10 +1783,10 @@ TF.prototype = {
 					{
 						var key=(evt.charCode)?evt.charCode:
 							((evt.keyCode)?evt.keyCode:((evt.which)?evt.which:0));
-						if(key=='13'){ 
+						if(key=='13'){
 							if(o.sorted){ o.Filter(); o.ChangePage(o.Evt._Paging.slcIndex()); }
-							else o.ChangePage();								
-							this.blur(); 
+							else o.ChangePage();
+							this.blur();
 						}
 					}//if evt
 				},
@@ -1793,7 +1796,7 @@ TF.prototype = {
 				firstEvt: null
 			}
 		}
-		
+
 		if(!this.Evt._OnSlcPagesChange)
 		{
 			this.Evt._OnSlcPagesChange = function()
@@ -1810,7 +1813,7 @@ TF.prototype = {
 					this.parentNode.focus();
 			}
 		}
-	
+
 		// Paging drop-down list selector
 		if(this.pageSelectorType == this.fltTypeSlc)
 		{
@@ -1821,21 +1824,21 @@ TF.prototype = {
 		// Paging input selector
 		if(this.pageSelectorType == this.fltTypeInp)
 		{
-			var slcPages = tf_CreateElm( 
-				this.fltTypeInp, 
+			var slcPages = tf_CreateElm(
+				this.fltTypeInp,
 				['id',this.prfxSlcPages+this.id],
 				['value',this.currentPageNb]
 			);
 			slcPages.className = this.pgInpCssClass;
 			slcPages.onkeypress = this.Evt._Paging._detectKey;
 		}
-		
+
 		var btnNextSpan, btnPrevSpan, btnLastSpan, btnFirstSpan;// btns containers
 		btnNextSpan = tf_CreateElm('span',['id',this.prfxBtnNextSpan+this.id]);
 		btnPrevSpan = tf_CreateElm('span',['id',this.prfxBtnPrevSpan+this.id]);
 		btnLastSpan = tf_CreateElm('span',['id',this.prfxBtnLastSpan+this.id]);
 		btnFirstSpan = tf_CreateElm('span',['id',this.prfxBtnFirstSpan+this.id]);
-		
+
 		if(this.hasPagingBtns)
 		{
 			if(this.btnNextPageHtml==null)
@@ -1849,7 +1852,7 @@ TF.prototype = {
 				btnNextSpan.innerHTML = this.btnNextPageHtml;
 				btnNextSpan.onclick = this.Evt._Paging.next;
 			}
-			
+
 			if(this.btnPrevPageHtml==null)
 			{// Previous button
 				var btn_prev = tf_CreateElm( this.fltTypeInp,['id',this.prfxBtnPrev+this.id],
@@ -1857,11 +1860,11 @@ TF.prototype = {
 				btn_prev.className = this.btnPageCssClass;
 				btn_prev.onclick = this.Evt._Paging.prev;
 				btnPrevSpan.appendChild(btn_prev);
-			} else { 
+			} else {
 				btnPrevSpan.innerHTML = this.btnPrevPageHtml;
 				btnPrevSpan.onclick = this.Evt._Paging.prev;
 			}
-			
+
 			if(this.btnLastPageHtml==null)
 			{// Last button
 				var btn_last = tf_CreateElm( this.fltTypeInp,['id',this.prfxBtnLast+this.id],
@@ -1869,11 +1872,11 @@ TF.prototype = {
 				btn_last.className = this.btnPageCssClass;
 				btn_last.onclick = this.Evt._Paging.last;
 				btnLastSpan.appendChild(btn_last);
-			} else { 
+			} else {
 				btnLastSpan.innerHTML = this.btnLastPageHtml;
 				btnLastSpan.onclick = this.Evt._Paging.last;
 			}
-			
+
 			if(this.btnFirstPageHtml==null)
 			{// First button
 				var btn_first = tf_CreateElm( this.fltTypeInp,['id',this.prfxBtnFirst+this.id],
@@ -1881,25 +1884,25 @@ TF.prototype = {
 				btn_first.className = this.btnPageCssClass;
 				btn_first.onclick = this.Evt._Paging.first;
 				btnFirstSpan.appendChild(btn_first);
-			} else { 
+			} else {
 				btnFirstSpan.innerHTML = this.btnFirstPageHtml;
 				btnFirstSpan.onclick = this.Evt._Paging.first;
-			}			
+			}
 		}//if this.hasPagingBtns
-		
+
 		// paging elements (buttons+drop-down list) are added to defined element
 		if(this.pagingTgtId==null) this.SetTopDiv();
 		var targetEl = ( this.pagingTgtId==null ) ? this.mDiv : tf_Id( this.pagingTgtId );
-		
-		/***	if paging previously removed this prevents IE memory leak with removeChild 
+
+		/***	if paging previously removed this prevents IE memory leak with removeChild
 				used in RemovePaging method. For more info refer to
 				http://forums.microsoft.com/MSDN/ShowPost.aspx?PostID=2840253&SiteID=1	***/
 		if ( targetEl.innerHTML!='' ) targetEl.innerHTML = '';
 		/*** ***/
-		
+
 		targetEl.appendChild(btnFirstSpan);
 		targetEl.appendChild(btnPrevSpan);
-		
+
 		var pgBeforeSpan = tf_CreateElm( 'span',['id',this.prfxPgBeforeSpan+this.id] );
 		pgBeforeSpan.appendChild( tf_CreateText(this.pageText) );
 		pgBeforeSpan.className = this.nbPgSpanCssClass;
@@ -1916,7 +1919,7 @@ TF.prototype = {
 		targetEl.appendChild(btnNextSpan);
 		targetEl.appendChild(btnLastSpan);
 		this.pagingSlc = tf_Id(this.prfxSlcPages+this.id); //to be easily re-used
-		
+
 		// if this.rememberGridValues==true this.SetPagingInfo() is called
 		// in ResetGridValues() method
 		if( !this.rememberGridValues || this.isPagingRemoved )
@@ -1926,11 +1929,11 @@ TF.prototype = {
 			this.ValidateAllRows();
 			this.SetPagingInfo(this.validRowsIndex);
 		}
-			
+
 		this.pagingBtnEvents = this.Evt._Paging;
 		this.isPagingRemoved = false;
 	},
-	
+
 	RemovePaging: function()
 	/*====================================================
 		- Removes paging elements
@@ -1947,35 +1950,35 @@ TF.prototype = {
 		pgBeforeSpan = tf_Id(this.prfxPgBeforeSpan+this.id);//span containing 'Page' text
 		pgAfterSpan = tf_Id(this.prfxPgAfterSpan+this.id);//span containing 'of' text
 		pgspan = tf_Id(this.prfxPgSpan+this.id);//span containing nb of pages
-		
+
 		this.pagingSlc.parentNode.removeChild(this.pagingSlc);
-		
+
 		if( btnNextSpan!=null )
 			btnNextSpan.parentNode.removeChild( btnNextSpan );
-	
+
 		if( btnPrevSpan!=null )
 			btnPrevSpan.parentNode.removeChild( btnPrevSpan );
-	
+
 		if( btnLastSpan!=null )
 			btnLastSpan.parentNode.removeChild( btnLastSpan );
-	
+
 		if( btnFirstSpan!=null )
 			btnFirstSpan.parentNode.removeChild( btnFirstSpan );
-	
+
 		if( pgBeforeSpan!=null )
 			pgBeforeSpan.parentNode.removeChild( pgBeforeSpan );
-	
+
 		if( pgAfterSpan!=null )
 			pgAfterSpan.parentNode.removeChild( pgAfterSpan );
-	
+
 		if( pgspan!=null )
 			pgspan.parentNode.removeChild( pgspan );
-		
-		this.pagingBtnEvents = null;	
+
+		this.pagingBtnEvents = null;
 		this.pagingSlc = null;
 		this.isPagingRemoved = true;
 	},
-	
+
 	SetPagingInfo: function( validRows )
 	/*====================================================
 		- calculates page # according to valid rows
@@ -1986,13 +1989,13 @@ TF.prototype = {
 		var row = this.tbl.rows;
 		var mdiv = ( this.pagingTgtId==null ) ? this.mDiv : tf_Id( this.pagingTgtId );
 		var pgspan = tf_Id(this.prfxPgSpan+this.id);
-		
+
 		if( validRows!=undefined ) this.validRowsIndex = validRows;//stores valid rows index
-		else 
+		else
 		{
 			this.validRowsIndex = [];//re-sets valid rows index
-	
-			for(var j=this.refRow; j<this.nbRows; j++)//counts rows to be grouped 
+
+			for(var j=this.refRow; j<this.nbRows; j++)//counts rows to be grouped
 			{
 				if(!row[j]) continue;
 				var isRowValid = row[j].getAttribute('validRow');
@@ -2000,12 +2003,12 @@ TF.prototype = {
 						this.validRowsIndex.push(j);
 			}//for j
 		}
-	
+
 		this.nbPages = Math.ceil( this.validRowsIndex.length/this.pagingLength );//calculates nb of pages
-		pgspan.innerHTML = this.nbPages; //refresh page nb span 
-		if(this.pageSelectorType==this.fltTypeSlc) 
+		pgspan.innerHTML = this.nbPages; //refresh page nb span
+		if(this.pageSelectorType==this.fltTypeSlc)
 			this.pagingSlc.innerHTML = '';//select clearing shortcut
-		
+
 		if( this.nbPages>0 )
 		{
 			mdiv.style.visibility = 'visible';
@@ -2016,13 +2019,13 @@ TF.prototype = {
 					this.pagingSlc.options[z] = currOpt;
 				}
 			else this.pagingSlc.value = this.currentPageNb; //input type
-			
+
 		} else {/*** if no results paging select and buttons are hidden ***/
 			mdiv.style.visibility = 'hidden';
 		}
 		this.GroupByPage( this.validRowsIndex );
 	},
-	
+
 	GroupByPage: function( validRows )
 	/*====================================================
 		- Displays current page rows
@@ -2032,7 +2035,7 @@ TF.prototype = {
 		var paging_end_row = parseInt( this.startPagingRow ) + parseInt( this.pagingLength );
 
 		if( validRows!=undefined ) this.validRowsIndex = validRows;//stores valid rows index
-	
+
 		for(h=0; h<this.validRowsIndex.length; h++)
 		{//this loop shows valid rows of current page
 			if( h>=this.startPagingRow && h<paging_end_row )
@@ -2046,12 +2049,12 @@ TF.prototype = {
 				if(this.alternateBgs) this.RemoveRowBg(this.validRowsIndex[h]);
 			}
 		}
-		
+
 		this.nbVisibleRows = this.validRowsIndex.length;
 		this.isStartBgAlternate = false;
 		this.ApplyGridProps();//re-applies filter behaviours after filtering process
 	},
-		
+
 	SetPage: function( cmd )
 	/*====================================================
 		- If paging set true shows page according to
@@ -2085,9 +2088,9 @@ TF.prototype = {
 				}//switch
 			}
 			if(cmdtype=='number') this.ChangePage( (cmd-1) );
-		}// this.hasGrid 
+		}// this.hasGrid
 	},
-	
+
 	SetResultsPerPage: function()
 	/*====================================================
 		- Generates results per page select + label
@@ -2095,7 +2098,7 @@ TF.prototype = {
 	{
 		if(!this.hasGrid && !this.isFirstLoad) return;
 		if( this.resultsPerPageSlc!=null || this.resultsPerPage==null ) return;
-		
+
 		//Change nb results per page event
 		if(!this.Evt._OnSlcResultsChange)
 		{
@@ -2108,26 +2111,26 @@ TF.prototype = {
 				o.ChangeResultsPerPage();
 				this.blur();
 				//ie only: blur is not enough...
-				if(this.parentNode && tf_isIE) 
+				if(this.parentNode && tf_isIE)
 					this.parentNode.focus();
 			}
 		}
-		
+
 		var slcR = tf_CreateElm( this.fltTypeSlc,['id',this.prfxSlcResults+this.id] );
 		slcR.className = this.resultsSlcCssClass;
 		var slcRText = this.resultsPerPage[0], slcROpts = this.resultsPerPage[1];
 		var slcRSpan = tf_CreateElm( 'span',['id',this.prfxSlcResultsTxt+this.id] );
 		slcRSpan.className = this.resultsSpanCssClass;
-		
+
 		// results per page select is added to defined element
 		if(this.resultsPerPageTgtId==null) this.SetTopDiv();
 		var targetEl = ( this.resultsPerPageTgtId==null ) ? this.rDiv : tf_Id( this.resultsPerPageTgtId );
 		slcRSpan.appendChild(tf_CreateText(slcRText));
 		targetEl.appendChild(slcRSpan);
 		targetEl.appendChild(slcR);
-		
+
 		this.resultsPerPageSlc = tf_Id(this.prfxSlcResults+this.id);
-		
+
 		for(var r=0; r<slcROpts.length; r++)
 		{
 			var currOpt = new Option(slcROpts[r],slcROpts[r],false,false);
@@ -2135,7 +2138,7 @@ TF.prototype = {
 		}
 		slcR.onchange = this.Evt._OnSlcResultsChange;
 	},
-	
+
 	RemoveResultsPerPage: function()
 	/*====================================================
 		- Removes results per page select + label
@@ -2152,7 +2155,7 @@ TF.prototype = {
 			slcRSpan.parentNode.removeChild( slcRSpan );
 		this.resultsPerPageSlc = null;
 	},
-	
+
 	SetHelpInstructions: function()
 	/*====================================================
 		- Generates help instructions
@@ -2165,16 +2168,16 @@ TF.prototype = {
 		this.helpInstrContTgtId = 	f.help_instructions_container_target_id!=undefined //id of custom container element for instructions
 										? f.help_instructions_container_target_id : null;
 		this.helpInstrText = 		f.help_instructions_text //defines help text
-										? f.help_instructions_text : 'Use the filters above each column to filter and limit table data. ' + 
+										? f.help_instructions_text : 'Use the filters above each column to filter and limit table data. ' +
 										'Avanced searches can be performed by using the following operators: <br />' +
-										'<b>&lt;</b>, <b>&lt;=</b>, <b>&gt;</b>, <b>&gt;=</b>, <b>=</b>, <b>*</b>, <b>!</b>, <b>{</b>, <b>}</b>, <b>||</b>, ' + 
+										'<b>&lt;</b>, <b>&lt;=</b>, <b>&gt;</b>, <b>&gt;=</b>, <b>=</b>, <b>*</b>, <b>!</b>, <b>{</b>, <b>}</b>, <b>||</b>, ' +
 										'<b>&amp;&amp;</b>, <b>[empty]</b>, <b>[nonempty]</b>, <b>rgx:</b><br/> These operators are described here:<br/>' +
 										'<a href="http://tablefilter.free.fr/#operators" target="_blank">http://tablefilter.free.fr/#operators</a><hr/>';
-		this.helpInstrHtml = 		f.help_instructions_html!=undefined 
+		this.helpInstrHtml = 		f.help_instructions_html!=undefined
 										? f.help_instructions_html : null; //defines help innerHtml
-		this.helpInstrBtnText = 	f.help_instructions_btn_text!=undefined 
+		this.helpInstrBtnText = 	f.help_instructions_btn_text!=undefined
 										? f.help_instructions_btn_text : '?'; //defines reset button text
-		this.helpInstrBtnHtml = 	f.help_instructions_btn_html!=undefined 
+		this.helpInstrBtnHtml = 	f.help_instructions_btn_html!=undefined
 										? f.help_instructions_btn_html : null; //defines reset button innerHtml
 		this.helpInstrBtnCssClass =	f.help_instructions_btn_css_class!=undefined //defines css class for help button
 										? f.help_instructions_btn_css_class : 'helpBtn';
@@ -2182,23 +2185,23 @@ TF.prototype = {
 										? f.help_instructions_container_css_class : 'helpCont';
 		this.helpInstrBtnEl =		null; //help button element
 		this.helpInstrContEl =		null; //help content div
-		this.helpInstrDefaultHtml = '<div class="helpFooter"><h4>HTML Table Filter Generator v. '+ this.version +'</h4>' + 
+		this.helpInstrDefaultHtml = '<div class="helpFooter"><h4>HTML Table Filter Generator v. '+ this.version +'</h4>' +
 									'<a href="http://tablefilter.free.fr" target="_blank">http://tablefilter.free.fr</a><br/>' +
-									'<span>&copy;2009-'+ this.year +' Max Guglielmi.</span><div align="center" style="margin-top:8px;">' + 
+									'<span>&copy;2009-'+ this.year +' Max Guglielmi.</span><div align="center" style="margin-top:8px;">' +
 									'<a href="javascript:;" onclick="window[\'tf_'+ this.id +'\']._ToggleHelp();">Close</a></div></div>';
-		
+
 		var helpspan = tf_CreateElm('span',['id',this.prfxHelpSpan+this.id]);
 		var helpdiv = tf_CreateElm('div',['id',this.prfxHelpDiv+this.id]);
-		
+
 		//help button is added to defined element
 		if(this.helpInstrTgtId==null) this.SetTopDiv();
 		var targetEl = ( this.helpInstrTgtId==null ) ? this.rDiv : tf_Id( this.helpInstrTgtId );
 		targetEl.appendChild(helpspan);
-		
+
 		var divContainer = ( this.helpInstrContTgtId==null ) ? helpspan : tf_Id( this.helpInstrContTgtId );
-		
+
 		if(this.helpInstrBtnHtml == null)
-		{	
+		{
 			divContainer.appendChild(helpdiv);
 			var helplink = tf_CreateElm( 'a', ['href','javascript:void(0);'] );
 			helplink.className = this.helpInstrBtnCssClass;
@@ -2211,7 +2214,7 @@ TF.prototype = {
 			helpEl.onclick = this.Evt._OnHelpBtnClick;
 			divContainer.appendChild(helpdiv);
 		}
-		
+
 		if(this.helpInstrHtml == null)
 		{
 			//helpdiv.appendChild(tf_CreateText(this.helpInstrText));
@@ -2227,7 +2230,7 @@ TF.prototype = {
 			}
 		}
 		helpdiv.innerHTML += this.helpInstrDefaultHtml;
-		this.helpInstrContEl = helpdiv; 
+		this.helpInstrContEl = helpdiv;
 		this.helpInstrBtnEl = helpspan;
 	},
 
@@ -2243,7 +2246,7 @@ TF.prototype = {
 		this.helpInstrContEl.parentNode.removeChild(this.helpInstrContEl);
 		this.helpInstrContEl = null;
 	},
-	
+
 	_ToggleHelp: function()
 	/*====================================================
 		- Toggles help div
@@ -2259,7 +2262,7 @@ TF.prototype = {
 		}
 		else this.helpInstrContEl.style.display = 'none';
 	},
-	
+
 	ChangePage: function( index )
 	{
 		this.EvtManager(this.Evt.name.changepage,{ pgIndex:index });
@@ -2268,13 +2271,13 @@ TF.prototype = {
 	/*====================================================
 		- Changes page
 		- Param:
-			- index: option index of paging select 
+			- index: option index of paging select
 			(numeric value)
 	=====================================================*/
 	{
 		if( !this.paging ) return;
-		if( index==undefined ) 
-			index = (this.pageSelectorType==this.fltTypeSlc) ? 
+		if( index==undefined )
+			index = (this.pageSelectorType==this.fltTypeSlc) ?
 				this.pagingSlc.options.selectedIndex : (this.pagingSlc.value-1);
 		if( index>=0 && index<=(this.nbPages-1) )
 		{
@@ -2284,7 +2287,7 @@ TF.prototype = {
 				this.pagingSlc.options[index].selected = true;
 			else
 				this.pagingSlc.value = this.currentPageNb;
-	
+
 			if( this.rememberPageNb ) this.RememberPageNb( this.pgNbCookie );
 			this.startPagingRow = (this.pageSelectorType==this.fltTypeSlc)
 				? this.pagingSlc.value : (index*this.pagingLength);
@@ -2292,7 +2295,7 @@ TF.prototype = {
 			if(this.onAfterChangePage) this.onAfterChangePage.call(null, this, index);
 		}
 	},
-	
+
 	ChangeResultsPerPage: function()
 	{
 		this.EvtManager(this.Evt.name.changeresultsperpage);
@@ -2305,27 +2308,27 @@ TF.prototype = {
 	{
 		if( !this.paging ) return;
 		var slcR = this.resultsPerPageSlc;
-		var slcPagesSelIndex = (this.pageSelectorType==this.fltTypeSlc) 
+		var slcPagesSelIndex = (this.pageSelectorType==this.fltTypeSlc)
 			? this.pagingSlc.selectedIndex : parseInt(this.pagingSlc.value-1);
 		this.pagingLength = parseInt(slcR.options[slcR.selectedIndex].value);
 		this.startPagingRow = this.pagingLength*slcPagesSelIndex;
-	
+
 		if( !isNaN(this.pagingLength) )
 		{
 			if( this.startPagingRow>=this.nbFilterableRows )
 				this.startPagingRow = (this.nbFilterableRows-this.pagingLength);
 			this.SetPagingInfo();
-	
+
 			if(this.pageSelectorType==this.fltTypeSlc)
 			{
-				var slcIndex = (this.pagingSlc.options.length-1<=slcPagesSelIndex ) 
+				var slcIndex = (this.pagingSlc.options.length-1<=slcPagesSelIndex )
 								? (this.pagingSlc.options.length-1) : slcPagesSelIndex;
 				this.pagingSlc.options[slcIndex].selected = true;
 			}
 			if( this.rememberPageLen ) this.RememberPageLength( this.pgLenCookie );
 		}//if isNaN
 	},
-	
+
 	ResetPage: function( name )
 	{
 		this.EvtManager(this.Evt.name.resetpage);
@@ -2338,10 +2341,10 @@ TF.prototype = {
 	===============================================*/
 	{
 		var pgnb = tf_ReadCookie(name); //reads the cookie
-		if( pgnb!='' ) 
+		if( pgnb!='' )
 			this.ChangePage((pgnb-1));
 	},
-	
+
 	ResetPageLength: function( name )
 	{
 		this.EvtManager(this.Evt.name.resetpagelength);
@@ -2355,20 +2358,20 @@ TF.prototype = {
 	{
 		if(!this.paging) return;
 		var pglenIndex = tf_ReadCookie(name); //reads the cookie
-		
+
 		if( pglenIndex!='' )
 		{
 			this.resultsPerPageSlc.options[pglenIndex].selected = true;
 			this.ChangeResultsPerPage();
 		}
 	},
-	
+
 	AddPaging: function(filterTable)
 	/*====================================================
-		- Adds paging feature if filter grid bar is 
+		- Adds paging feature if filter grid bar is
 		already set
 		- Param(s):
-			- execFilter: if true table is filtered 
+			- execFilter: if true table is filtered
 			(boolean)
 	=====================================================*/
 	{
@@ -2379,15 +2382,15 @@ TF.prototype = {
 		this.ResetValues();
 		if(filterTable) this.Filter();
 	},
-	
+
 	PopulateSelect: function(colIndex,isExternal,extSlcId)
-	{ 
+	{
 		this.EvtManager(
 			this.Evt.name.populateselect,
 			{ slcIndex:colIndex, slcExternal:isExternal, slcId:extSlcId }
-		); 
+		);
 	},
-	
+
 	_PopulateSelect: function(colIndex,isRefreshed,isExternal,extSlcId)
 	/*====================================================
 		- populates drop-down filters
@@ -2409,7 +2412,7 @@ TF.prototype = {
 			activeFlt = this.activeFilterId.split('_')[0];
 			activeFlt = activeFlt.split(this.prfxFlt)[1];
 		}
-	
+
 		/*** remember grid values ***/
 		var flts_values = [], fltArr = [];
 		if(this.rememberGridValues)
@@ -2423,23 +2426,23 @@ TF.prototype = {
 		}
 
 		var excludedOpts = null, filteredDataCol = null;
-		if(isRefreshed && this.disableExcludedOptions){ excludedOpts = []; filteredDataCol = []; }	
+		if(isRefreshed && this.disableExcludedOptions){ excludedOpts = []; filteredDataCol = []; }
 
 		for(var k=this.refRow; k<this.nbRows; k++)
 		{
 			// always visible rows don't need to appear on selects as always valid
-			if( this.hasVisibleRows && this.visibleRows.tf_Has(k) && !this.paging ) 
+			if( this.hasVisibleRows && this.visibleRows.tf_Has(k) && !this.paging )
 				continue;
-	
+
 			var cell = row[k].cells;
 			var nchilds = cell.length;
-	
+
 			if(nchilds == this.nbCells && !isCustomSlc)
 			{// checks if row has exact cell #
 				for(var j=0; j<nchilds; j++)// this loop retrieves cell data
 				{
 					if((colIndex==j && (!isRefreshed || (isRefreshed && this.disableExcludedOptions))) ||
-						(colIndex==j && isRefreshed && ((row[k].style.display == '' && !this.paging) || 
+						(colIndex==j && isRefreshed && ((row[k].style.display == '' && !this.paging) ||
 						( this.paging && (!this.validRowsIndex || (this.validRowsIndex && this.validRowsIndex.tf_Has(k)))
 							&& ((activeFlt==undefined || activeFlt==colIndex)  || (activeFlt!=colIndex && this.validRowsIndex.tf_Has(k) ))) )))
 					{
@@ -2447,17 +2450,17 @@ TF.prototype = {
 						var cell_string = cell_data.tf_MatchCase(this.matchCase);//Váry Péter's patch
 						// checks if celldata is already in array
 						if(!optArray.tf_Has(cell_string,this.matchCase)) optArray.push(cell_data);
-						
+
 						if(isRefreshed && this.disableExcludedOptions){
 							if(!filteredDataCol[j]) filteredDataCol[j] = this.GetFilteredDataCol(j);
-							if(!filteredDataCol[j].tf_Has(cell_string,this.matchCase) 
+							if(!filteredDataCol[j].tf_Has(cell_string,this.matchCase)
 								&& !excludedOpts.tf_Has(cell_string,this.matchCase) && !this.isFirstLoad) excludedOpts.push(cell_data);
 						}
 					}//if colIndex==j
 				}//for j
 			}//if
 		}//for k
-		
+
 		//Retrieves custom values
 		if(isCustomSlc)
 		{
@@ -2465,14 +2468,14 @@ TF.prototype = {
 			optArray = customValues[0];
 			optTxt = customValues[1];
 		}
-		
+
 		if(this.sortSlc && !isCustomSlc){
-			if (!this.matchCase){ 
-				optArray.sort(tf_IgnoreCaseSort); 
-				if(excludedOpts) excludedOpts.sort(tf_IgnoreCaseSort); 
+			if (!this.matchCase){
+				optArray.sort(tf_IgnoreCaseSort);
+				if(excludedOpts) excludedOpts.sort(tf_IgnoreCaseSort);
 			} else { optArray.sort(); if(excludedOpts){ excludedOpts.sort(); } }
 		}
-		
+
 		if(this.sortNumAsc && this.sortNumAsc.tf_Has(colIndex))
 		{//asc sort
 			try{
@@ -2480,14 +2483,14 @@ TF.prototype = {
 				if(excludedOpts) excludedOpts.sort( tf_NumSortAsc );
 				if(isCustomSlc) optTxt.sort( tf_NumSortAsc );
 			} catch(e) {
-				optArray.sort(); if(excludedOpts){ excludedOpts.sort(); } 
+				optArray.sort(); if(excludedOpts){ excludedOpts.sort(); }
 				if(isCustomSlc) optTxt.sort();
 			}//in case there are alphanumeric values
 		}
 		if(this.sortNumDesc && this.sortNumDesc.tf_Has(colIndex))
 		{//desc sort
 			try{
-				optArray.sort( tf_NumSortDesc ); 
+				optArray.sort( tf_NumSortDesc );
 				if(excludedOpts) excludedOpts.sort( tf_NumSortDesc );
 				if(isCustomSlc) optTxt.sort( tf_NumSortDesc );
 			} catch(e) {
@@ -2495,9 +2498,9 @@ TF.prototype = {
 				if(isCustomSlc) optTxt.sort();
 			}//in case there are alphanumeric values
 		}
-		
+
 		AddOpts();//populates drop-down
-		
+
 		function AddOpt0()
 		{// adds 1st option
 			if( fillMethod == 'innerhtml' )
@@ -2516,23 +2519,23 @@ TF.prototype = {
 				}
 			}
 		}
-		
+
 		function AddOpts()
 		{// populates select
 			var slcValue = slc.value;
 			slc.innerHTML = '';
-			AddOpt0();			
-			
+			AddOpt0();
+
 			for(var y=0; y<optArray.length; y++)
-			{	
+			{
 				if(optArray[y]=='') continue;
 				var val = optArray[y]; //option value
 				var lbl = (isCustomSlc) ? optTxt[y] : optArray[y]; //option text
 				var isDisabled = false;
-				if(isRefreshed && o.disableExcludedOptions && 
+				if(isRefreshed && o.disableExcludedOptions &&
 					excludedOpts.tf_Has(val.tf_MatchCase(o.matchCase), o.matchCase))
 					isDisabled = true;
-				
+
 				if( fillMethod == 'innerhtml' )
 				{
 					var slcAttr = '';
@@ -2548,13 +2551,13 @@ TF.prototype = {
 					else{
 						if( o['col'+colIndex]!=o.fltTypeMulti )
 							opt = tf_CreateOpt( lbl, val,
-												(flts_values[colIndex]!=' ' && val==flts_values[colIndex]) 
+												(flts_values[colIndex]!=' ' && val==flts_values[colIndex])
 												? true : false 	);
 						else
 						{
 							opt = tf_CreateOpt( lbl, val,
-												(fltArr.tf_Has(optArray[y].tf_MatchCase(o.matchCase),o.matchCase) 
-													|| fltArr.toString().indexOf(val)!= -1) 
+												(fltArr.tf_Has(optArray[y].tf_MatchCase(o.matchCase),o.matchCase)
+													|| fltArr.toString().indexOf(val)!= -1)
 												? true : false 	);
 						}
 					}
@@ -2562,24 +2565,24 @@ TF.prototype = {
 					slc.appendChild(opt);
 				}
 			}// for y
-	
+
 			if( fillMethod == 'innerhtml' )	slc.innerHTML += slcInnerHtml;
-			slc.setAttribute('filled','1');			
+			slc.setAttribute('filled','1');
 		}// fn AddOpt
 	},
-	
+
 	__deferMultipleSelection: function(slc,index,filter)
 	/*====================================================
-		- IE bug: it seems there is no way to make 
-		multiple selections programatically, only last 
-		selection is kept (multiple select previously 
+		- IE bug: it seems there is no way to make
+		multiple selections programatically, only last
+		selection is kept (multiple select previously
 		populated via DOM)
 		- Work-around: defer selection with a setTimeout
-		If you find a more elegant solution to 
+		If you find a more elegant solution to
 		this let me know ;-)
-		- For the moment only this solution seems 
+		- For the moment only this solution seems
 		to work!
-		- Params: 
+		- Params:
 			- slc = select object (select obj)
 			- index to be selected (integer)
 			- execute filtering (boolean)
@@ -2591,20 +2594,20 @@ TF.prototype = {
 		window.setTimeout(
 			function(){
 				slc.options[0].selected = false;
-				
-				if(slc.options[index].value=='') 
+
+				if(slc.options[index].value=='')
 					slc.options[index].selected = false;
 				else
-				slc.options[index].selected = true; 
+				slc.options[index].selected = true;
 				if(doFilter) o.Filter();
 			},
 			.1
 		);
 	},
-	
+
 	__getCustomValues: function(colIndex)
 	/*====================================================
-		- Returns an array [[values],[texts]] with 
+		- Returns an array [[values],[texts]] with
 		custom values for a given filter
 		- Param: column index (integer)
 	=====================================================*/
@@ -2633,15 +2636,15 @@ TF.prototype = {
 		}
 		return [optArray,optTxt];
 	},
-	
+
 	PopulateCheckList: function(colIndex, isExternal, extFltId)
 	{
 		this.EvtManager(
 			this.Evt.name.populatechecklist,
 			{ slcIndex:colIndex, slcExternal:isExternal, slcId:extFltId }
-		); 
+		);
 	},
-	
+
 	_PopulateCheckList: function(colIndex, isExternal, extFltId)
 	/*====================================================
 		- populates checklist filters
@@ -2668,39 +2671,39 @@ TF.prototype = {
 
 		var excludedOpts = null, filteredDataCol = null;
 		if(this.refreshFilters && this.disableExcludedOptions){ excludedOpts = []; filteredDataCol = []; }
-		
+
 		for(var k=this.refRow; k<this.nbRows; k++)
 		{
 			// always visible rows don't need to appear on selects as always valid
-			if( this.hasVisibleRows && this.visibleRows.tf_Has(k) && !this.paging ) 
+			if( this.hasVisibleRows && this.visibleRows.tf_Has(k) && !this.paging )
 				continue;
-	
+
 			var cells = row[k].cells;
 			var ncells = cells.length;
-	
+
 			if(ncells == this.nbCells && !isCustomSlc)
 			{// checks if row has exact cell #
 				for(var j=0; j<ncells; j++)
 				{// this loop retrieves cell data
-					if((colIndex==j && (!this.refreshFilters || (this.refreshFilters && this.disableExcludedOptions))) || 
-						(colIndex==j && this.refreshFilters && ((row[k].style.display == '' && !this.paging) || 
+					if((colIndex==j && (!this.refreshFilters || (this.refreshFilters && this.disableExcludedOptions))) ||
+						(colIndex==j && this.refreshFilters && ((row[k].style.display == '' && !this.paging) ||
 						(this.paging && ((activeFlt==undefined || activeFlt==colIndex ) ||(activeFlt!=colIndex && this.validRowsIndex.tf_Has(k))) ))))
 					{
 						var cell_data = this.GetCellData(j, cells[j]);
 						var cell_string = cell_data.tf_MatchCase(this.matchCase);//Váry Péter's patch
 						// checks if celldata is already in array
 						if(!optArray.tf_Has(cell_string,this.matchCase)) optArray.push(cell_data);
-						
+
 						if(this.refreshFilters && this.disableExcludedOptions){
 							if(!filteredDataCol[j]) filteredDataCol[j] = this.GetFilteredDataCol(j);
-							if(!filteredDataCol[j].tf_Has(cell_string,this.matchCase) 
+							if(!filteredDataCol[j].tf_Has(cell_string,this.matchCase)
 								&& !excludedOpts.tf_Has(cell_string,this.matchCase) && !this.isFirstLoad) excludedOpts.push(cell_data);
 						}
 					}
 				}
 			}
 		}
-		
+
 		//Retrieves custom values
 		if(isCustomSlc)
 		{
@@ -2708,14 +2711,14 @@ TF.prototype = {
 			optArray = customValues[0];
 			optTxt = customValues[1];
 		}
-		
+
 		if(this.sortSlc && !isCustomSlc){
-			if (!this.matchCase){ 
-				optArray.sort(tf_IgnoreCaseSort); 
-				if(excludedOpts) excludedOpts.sort(tf_IgnoreCaseSort); 
+			if (!this.matchCase){
+				optArray.sort(tf_IgnoreCaseSort);
+				if(excludedOpts) excludedOpts.sort(tf_IgnoreCaseSort);
 			} else { optArray.sort(); if(excludedOpts){ excludedOpts.sort(); }  }
 		}
-		
+
 		if(this.sortNumAsc && this.sortNumAsc.tf_Has(colIndex))
 		{//asc sort
 			try{
@@ -2723,14 +2726,14 @@ TF.prototype = {
 				if(excludedOpts) excludedOpts.sort( tf_NumSortAsc );
 				if(isCustomSlc) optTxt.sort( tf_NumSortAsc );
 			} catch(e) {
-				optArray.sort(); if(excludedOpts){ excludedOpts.sort(); } 
+				optArray.sort(); if(excludedOpts){ excludedOpts.sort(); }
 				if(isCustomSlc) optTxt.sort();
 			}//in case there are alphanumeric values
 		}
 		if(this.sortNumDesc && this.sortNumDesc.tf_Has(colIndex))
 		{//desc sort
 			try{
-				optArray.sort( tf_NumSortDesc ); 
+				optArray.sort( tf_NumSortDesc );
 				if(excludedOpts) excludedOpts.sort( tf_NumSortDesc );
 				if(isCustomSlc) optTxt.sort( tf_NumSortDesc );
 			} catch(e) {
@@ -2738,9 +2741,9 @@ TF.prototype = {
 				if(isCustomSlc) optTxt.sort();
 			}//in case there are alphanumeric values
 		}
-	
+
 		AddChecks(this.separator);
-		
+
 		function AddTChecks()
 		{// adds 1st option
 			var chkCt = 1;
@@ -2749,24 +2752,24 @@ TF.prototype = {
 			ul.appendChild(li0);
 			li0.check.onclick = function(e){ o.__setCheckListValues(this); ul.onchange.call(null, e); };
 			if(!o.enableCheckListResetFilter) li0.style.display = 'none';
-			
+
 			if(tf_isIE)
 			{//IE: label looses check capability
 				li0.label.onclick = function(){ li0.check.click(); };
 			}
-			
+
 			if(o.enableEmptyOption){
 				var li1 = tf_CreateCheckItem(o.fltIds[colIndex]+'_1', o.emOperator, o.emptyText);
 				li1.className = o.checkListItemCssClass;
 				ul.appendChild(li1);
-				li1.check.onclick = function(e){ o.__setCheckListValues(this); ul.onchange.call(null, e); };				
+				li1.check.onclick = function(e){ o.__setCheckListValues(this); ul.onchange.call(null, e); };
 				if(tf_isIE)
 				{//IE: label looses check capability
 					li1.label.onclick = function(){ li1.check.click(); };
 				}
 				chkCt++;
 			}
-			
+
 			if(o.enableNonEmptyOption){
 				var li2 = tf_CreateCheckItem(o.fltIds[colIndex]+'_2', o.nmOperator, o.nonEmptyText);
 				li2.className = o.checkListItemCssClass;
@@ -2780,27 +2783,27 @@ TF.prototype = {
 			}
 			return chkCt;
 		}
-		
+
 		function AddChecks(separator)
-		{		
+		{
 			var chkCt = AddTChecks();
-			
-			var flts_values = [], fltArr = []; //remember grid values			
+
+			var flts_values = [], fltArr = []; //remember grid values
 			var tmpVal = tf_CookieValueByIndex(o.fltsValuesCookie, colIndex, separator);
 			if(tmpVal != undefined && tmpVal.tf_Trim().length > 0){
 				if(o.hasCustomSlcOptions && o.customSlcOptions.cols.tf_Has(colIndex)){
 					fltArr.push(tmpVal);
 				} else { fltArr = tmpVal.split(' '+o.orOperator+' '); }
 			}
-			
+
 			for(var y=0; y<optArray.length; y++)
 			{
 				var val = optArray[y]; //item value
 				var lbl = (isCustomSlc) ? optTxt[y] : val; //item text
 				var li = tf_CreateCheckItem(o.fltIds[colIndex]+'_'+(y+chkCt), val, lbl);
 				li.className = o.checkListItemCssClass;
-				if(o.refreshFilters && o.disableExcludedOptions && 
-					excludedOpts.tf_Has(val.tf_MatchCase(o.matchCase), o.matchCase)){ 
+				if(o.refreshFilters && o.disableExcludedOptions &&
+					excludedOpts.tf_Has(val.tf_MatchCase(o.matchCase), o.matchCase)){
 						tf_AddClass(li, o.checkListItemDisabledCssClass);
 						li.check.disabled = true;
 						li.disabled = true;
@@ -2809,30 +2812,30 @@ TF.prototype = {
 				ul.appendChild(li);
 
 				if(val=='') li.style.display = 'none'; //item is hidden
-	
+
 				/*** remember grid values ***/
 				if(o.rememberGridValues)
 				{
-					if((o.hasCustomSlcOptions && o.customSlcOptions.cols.tf_Has(colIndex) 
-						&& fltArr.toString().indexOf(val)!= -1) 
+					if((o.hasCustomSlcOptions && o.customSlcOptions.cols.tf_Has(colIndex)
+						&& fltArr.toString().indexOf(val)!= -1)
 						|| fltArr.tf_Has(val.tf_MatchCase(o.matchCase),o.matchCase))
 					{
 						li.check.checked = true;
 						o.__setCheckListValues(li.check);
-					}			
+					}
 				}
-				
+
 				if(tf_isIE)
 				{//IE: label looses check capability
-					li.label.onclick = function(){ this.firstChild.click(); };	
+					li.label.onclick = function(){ this.firstChild.click(); };
 				}
 			}
 		}
-		
+
 		if(this.fillSlcOnDemand) flt.innerHTML = '';
 		flt.appendChild(ul);
 		flt.setAttribute('filled','1');
-		
+
 		/*** remember grid values IE only, items remain un-checked ***/
 		if(o.rememberGridValues && tf_isIE)
 		{
@@ -2848,7 +2851,7 @@ TF.prototype = {
 			}
 		}
 	},
-	
+
 	__setCheckListValues: function(o)
 	/*====================================================
 		- Sets checked items information of a checklist
@@ -2859,19 +2862,19 @@ TF.prototype = {
 		var chkIndex = parseInt(o.id.split('_')[2]);
 		var filterTag = 'ul', itemTag = 'li';
 		var n = o;
-		
+
 		//ul tag search
 		while(n.nodeName.tf_LCase() != filterTag)
 			n = n.parentNode;
-	
+
 		if(n.nodeName.tf_LCase() != filterTag) return;
-		
+
 		var li = n.childNodes[chkIndex];
 		var colIndex = n.getAttribute('colIndex');
 		var fltValue = n.getAttribute('value'); //filter value (ul tag)
 		var fltIndexes = n.getAttribute('indexes'); //selected items (ul tag)
 
-		if(o.checked)		
+		if(o.checked)
 		{
 			if(chkValue=='')
 			{//show all item
@@ -2882,7 +2885,7 @@ TF.prototype = {
 					{//checked items loop
 						var cChk = tf_Id(this.fltIds[colIndex]+'_'+indSplit[u]); //checked item
 						if(cChk)
-						{ 
+						{
 							cChk.checked = false;
 							tf_RemoveClass(
 								n.childNodes[indSplit[u]],
@@ -2893,7 +2896,7 @@ TF.prototype = {
 				}
 				n.setAttribute('value', '');
 				n.setAttribute('indexes', '');
-				
+
 			} else {
 				fltValue = (fltValue) ? fltValue : '';
 				chkValue = (fltValue+' '+chkValue +' '+this.orOperator).tf_Trim();
@@ -2902,9 +2905,9 @@ TF.prototype = {
 				n.setAttribute('indexes', chkIndex);
 				//1st option unchecked
 				if(tf_Id(this.fltIds[colIndex]+'_0'))
-					tf_Id(this.fltIds[colIndex]+'_0').checked = false; 
+					tf_Id(this.fltIds[colIndex]+'_0').checked = false;
 			}
-			
+
 			if(li.nodeName.tf_LCase() == itemTag)
 			{
 				tf_RemoveClass(n.childNodes[0],this.checkListSlcItemCssClass);
@@ -2916,7 +2919,7 @@ TF.prototype = {
 				var replaceValue = new RegExp(tf_RegexpEscape(chkValue+' '+this.orOperator));
 				fltValue = fltValue.replace(replaceValue,'');
 				n.setAttribute('value', fltValue.tf_Trim());
-				
+
 				var replaceIndex = new RegExp(tf_RegexpEscape(chkIndex + this.separator));
 				fltIndexes = fltIndexes.replace(replaceIndex,'');
 				n.setAttribute('indexes', fltIndexes);
@@ -2925,7 +2928,7 @@ TF.prototype = {
 				tf_RemoveClass(li,this.checkListSlcItemCssClass);
 		}
 	},
-	
+
 	SetResetBtn: function()
 	/*====================================================
 		- Generates reset button
@@ -2940,17 +2943,17 @@ TF.prototype = {
 		this.btnResetText =			f.btn_reset_text!=undefined ? f.btn_reset_text : 'Reset'; //defines reset text
 		this.btnResetTooltip =		f.btn_reset_tooltip!=undefined ? f.btn_reset_tooltip : 'Clear filters'; //defines reset button tooltip
 		this.btnResetHtml = 		f.btn_reset_html!=undefined ? f.btn_reset_html : (!this.enableIcons ? null : //defines reset button innerHtml
-									'<input type="button" value="" class="'+this.btnResetCssClass+'" title="'+this.btnResetTooltip+'" />'); 
-		
+									'<input type="button" value="" class="'+this.btnResetCssClass+'" title="'+this.btnResetTooltip+'" />');
+
 		var resetspan = tf_CreateElm('span',['id',this.prfxResetSpan+this.id]);
-		
+
 		// reset button is added to defined element
 		if(this.btnResetTgtId==null) this.SetTopDiv();
 		var targetEl = ( this.btnResetTgtId==null ) ? this.rDiv : tf_Id( this.btnResetTgtId );
 		targetEl.appendChild(resetspan);
-	
+
 		if(this.btnResetHtml==null)
-		{	
+		{
 			var fltreset = tf_CreateElm( 'a', ['href','javascript:void(0);'] );
 			fltreset.className = this.btnResetCssClass;
 			fltreset.appendChild(tf_CreateText(this.btnResetText));
@@ -2961,9 +2964,9 @@ TF.prototype = {
 			var resetEl = resetspan.firstChild;
 			resetEl.onclick = this.Evt._Clear;
 		}
-		this.btnResetEl = tf_Id(this.prfxResetSpan+this.id).firstChild;	
+		this.btnResetEl = tf_Id(this.prfxResetSpan+this.id).firstChild;
 	},
-	
+
 	RemoveResetBtn: function()
 	/*====================================================
 		- Removes reset button
@@ -2974,9 +2977,9 @@ TF.prototype = {
 		var resetspan = tf_Id(this.prfxResetSpan+this.id);
 		if( resetspan!=null )
 			resetspan.parentNode.removeChild( resetspan );
-		this.btnResetEl = null;	
+		this.btnResetEl = null;
 	},
-	
+
 	SetStatusBar: function()
 	/*====================================================
 		- Generates status bar label
@@ -3001,7 +3004,7 @@ TF.prototype = {
 		statusSpanText.appendChild( tf_CreateText(this.statusBarText) );
 		this.onBeforeShowMsg = tf_IsFn(f.on_before_show_msg) ? f.on_before_show_msg : null; //calls function before message is displayed
 		this.onAfterShowMsg = tf_IsFn(f.on_after_show_msg) ? f.on_after_show_msg : null; //calls function after message is displayed
-										
+
 
 		// target element container
 		if(this.statusBarTgtId==null) this.SetTopDiv();
@@ -3036,7 +3039,7 @@ TF.prototype = {
 		if(this.statusBarDiv)
 		{
 			this.statusBarDiv.innerHTML = '';
-			this.statusBarDiv.parentNode.removeChild( 
+			this.statusBarDiv.parentNode.removeChild(
 				this.statusBarDiv
 			);
 			this.statusBarSpan = null;
@@ -3127,10 +3130,10 @@ TF.prototype = {
 		}
 		this.rowsCounterDiv = tf_Id( this.prfxCounter+this.id );
 		this.rowsCounterSpan = tf_Id( this.prfxTotRows+this.id );
-		
-		this.RefreshNbRows();	
+
+		this.RefreshNbRows();
 	},
-	
+
 	RemoveRowsCounter: function()
 	/*====================================================
 		- Removes rows counter label
@@ -3138,13 +3141,13 @@ TF.prototype = {
 	{
 		if(!this.hasGrid) return;
 		if( this.rowsCounterSpan==null ) return;
-		
+
 		if(this.rowsCounterTgtId==null && this.rowsCounterDiv)
 		{
 			//IE only: clears all for sure
 			if(tf_isIE) this.rowsCounterDiv.outerHTML = '';
 			else
-				this.rowsCounterDiv.parentNode.removeChild( 
+				this.rowsCounterDiv.parentNode.removeChild(
 					this.rowsCounterDiv
 				);
 		} else {
@@ -3153,7 +3156,7 @@ TF.prototype = {
 		this.rowsCounterSpan = null;
 		this.rowsCounterDiv = null;
 	},
-	
+
 	RefreshNbRows: function(p)
 	/*====================================================
 		- Shows total number of filtered rows
@@ -3168,14 +3171,14 @@ TF.prototype = {
 			else totTxt = (this.nbFilterableRows - this.nbHiddenRows - (this.hasVisibleRows ? this.visibleRows.length : 0) );
 		} else {
 			var paging_start_row = parseInt(this.startPagingRow)+((this.nbVisibleRows>0) ? 1 : 0);//paging start row
-			var paging_end_row = (paging_start_row+this.pagingLength)-1 <= this.nbVisibleRows 
+			var paging_end_row = (paging_start_row+this.pagingLength)-1 <= this.nbVisibleRows
 				? (paging_start_row+this.pagingLength)-1 : this.nbVisibleRows;
 			totTxt = paging_start_row+ this.fromToTextSeparator +paging_end_row+ this.overText +this.nbVisibleRows;
-		} 
+		}
 		this.rowsCounterSpan.innerHTML = totTxt;
 		if(this.onAfterRefreshCounter) this.onAfterRefreshCounter.call(null, this, this.rowsCounterSpan, totTxt);
 	},
-	
+
 	SetWatermark: function(set)
 	/*====================================================
 		- inserts or removes input watermark
@@ -3189,14 +3192,15 @@ TF.prototype = {
 			for(var i=0; i<this.fltIds.length; i++){
 				if(this['col'+i]!=this.fltTypeInp) continue; //only input type filters
 				var inpWatermark = (!this.isInpWatermarkArray ? this.inpWatermark : this.inpWatermark[i]);
-				if(this.GetFilterValue(i) == (set ? '' : inpWatermark)){
+				if(this.GetFilterValue(i) == (set ? '' : inpWatermark) &&
+					(document.activeElement != this.GetFilterElement(i))){
 					this.SetFilterValue(i,(!set ? '' : inpWatermark));
 					tf_AddClass(this.GetFilterElement(i), this.inpWatermarkCssClass);
 				}
 			}
 		}
 	},
-	
+
 	SetGridLayout: function()
 	/*====================================================
 		- generates a grid with fixed headers
@@ -3215,14 +3219,14 @@ TF.prototype = {
 		this.gridInfDivCssClass =	f.grid_inf_grid_css_class!=undefined //defines css class for div containing rows counter, paging etc.
 										? f.grid_inf_grid_css_class : 'grd_inf';
 		this.gridHeadRowIndex =		f.grid_headers_row_index!=undefined //defines which row contains column headers
-										? f.grid_headers_row_index : 0; 
+										? f.grid_headers_row_index : 0;
 		this.gridHeadRows =			f.grid_headers_rows!=undefined //array of headers row indexes to be placed in header table
 										? f.grid_headers_rows : [0];
-		this.gridEnableFilters =	f.grid_enable_default_filters!=undefined 
+		this.gridEnableFilters =	f.grid_enable_default_filters!=undefined
 										? f.grid_enable_default_filters : true; //generate filters in table headers
-		this.gridDefaultColWidth =	f.grid_default_col_width!=undefined 
-										? f.grid_default_col_width : '100px'; //default col width						
-		this.gridEnableColResizer =	f.grid_enable_cols_resizer!=undefined 
+		this.gridDefaultColWidth =	f.grid_default_col_width!=undefined
+										? f.grid_default_col_width : '100px'; //default col width
+		this.gridEnableColResizer =	f.grid_enable_cols_resizer!=undefined
 										? f.grid_enable_cols_resizer : true; //enables/disables columns resizer
 		this.gridColResizerPath =	f.grid_cont_col_resizer_path!=undefined //defines col resizer script path
 										? f.grid_cont_col_resizer_path : this.basePath+'TFExt_ColsResizer/TFExt_ColsResizer.js';
@@ -3238,18 +3242,18 @@ TF.prototype = {
 			this.hasColWidth = true;
 		}
 		this.SetColWidths(this.gridHeadRowIndex);
-	
+
 		var tblW;//initial table width
 		if(this.tbl.width!='') tblW = this.tbl.width;
 		else if(this.tbl.style.width!='') tblW = parseInt(this.tbl.style.width);
 		else tblW = this.tbl.clientWidth;
-		
+
 		//Main container: it will contain all the elements
 		this.tblMainCont = tf_CreateElm('div',['id', this.prfxMainTblCont + this.id]);
 		this.tblMainCont.className = this.gridMainContCssClass;
 		if(this.gridWidth) this.tblMainCont.style.width = this.gridWidth;
 		this.tbl.parentNode.insertBefore(this.tblMainCont, this.tbl);
-		
+
 		//Table container: div wrapping content table
 		this.tblCont = tf_CreateElm('div',['id', this.prfxTblCont + this.id]);
 		this.tblCont.className = this.gridContCssClass;
@@ -3258,24 +3262,24 @@ TF.prototype = {
 		this.tbl.parentNode.insertBefore(this.tblCont, this.tbl);
 		var t = this.tbl.parentNode.removeChild(this.tbl);
 		this.tblCont.appendChild(t);
-		
+
 		//In case table width is expressed in %
 		if(this.tbl.style.width == '')
-			this.tbl.style.width = (this.__containsStr('%',tblW) 
+			this.tbl.style.width = (this.__containsStr('%',tblW)
 									? this.tbl.clientWidth : tblW) + 'px';
-	
+
 		var d = this.tblCont.parentNode.removeChild(this.tblCont);
 		this.tblMainCont.appendChild(d);
-		
+
 		//Headers table container: div wrapping headers table
 		this.headTblCont = tf_CreateElm('div',['id', this.prfxHeadTblCont + this.id]);
 		this.headTblCont.className = this.gridHeadContCssClass;
-		if(this.gridWidth) this.headTblCont.style.width = this.gridWidth;		
-		
+		if(this.gridWidth) this.headTblCont.style.width = this.gridWidth;
+
 		//Headers table
 		this.headTbl = tf_CreateElm('table',['id', this.prfxHeadTbl + this.id]);
 		var tH = tf_CreateElm('tHead'); //IE<7 needs it
-		
+
 		//1st row should be headers row, ids are added if not set
 		//Those ids are used by the sort feature
 		var hRow = this.tbl.rows[this.gridHeadRowIndex];
@@ -3283,13 +3287,13 @@ TF.prototype = {
 		for(var n=0; n<this.nbCells; n++){
 			var cell = hRow.cells[n];
 			var thId = cell.getAttribute('id');
-			if(!thId || thId==''){ 
-				thId = this.prfxGridTh+n+'_'+this.id 
+			if(!thId || thId==''){
+				thId = this.prfxGridTh+n+'_'+this.id
 				cell.setAttribute('id', thId);
 			}
 			sortTriggers.push(thId);
 		}
-		
+
 		//Filters row is created
 		var filtersRow = tf_CreateElm('tr');
 		if(this.gridEnableFilters && this.fltGrid){
@@ -3301,40 +3305,40 @@ TF.prototype = {
 				filtersRow.appendChild(c);
 				this.externalFltTgtIds[j] = fltTdId;
 			}
-		} 
+		}
 		//Headers row are moved from content table to headers table
 		for(var i=0; i<this.gridHeadRows.length; i++)
 		{
-			var headRow = this.tbl.rows[this.gridHeadRows[0]];			
+			var headRow = this.tbl.rows[this.gridHeadRows[0]];
 			tH.appendChild(headRow);
 		}
 		this.headTbl.appendChild(tH);
 		if(this.filtersRowIndex == 0) tH.insertBefore(filtersRow,hRow);
 		else tH.appendChild(filtersRow);
-		
+
 		this.headTblCont.appendChild(this.headTbl);
 		this.tblCont.parentNode.insertBefore(this.headTblCont, this.tblCont);
-		
+
 		//THead needs to be removed in content table for sort feature
 		var thead = tf_Tag(this.tbl,'thead');
 		if( thead.length>0 ) this.tbl.removeChild(thead[0]);
-	
+
 		//Headers table style
 		this.headTbl.style.width = this.tbl.style.width;
 		this.headTbl.style.tableLayout = 'fixed';
 		this.tbl.style.tableLayout = 'fixed';
 		this.headTbl.cellPadding = this.tbl.cellPadding;
 		this.headTbl.cellSpacing = this.tbl.cellSpacing;
-		
+
 		//Headers container width
 		this.headTblCont.style.width = this.tblCont.clientWidth+'px';
-		
+
 		//content table without headers needs col widths to be reset
 		this.SetColWidths();
-		
-		this.tbl.style.width = '';		
+
+		this.tbl.style.width = '';
 		if(tf_isIE || tf_isIE7)	this.headTbl.style.width = '';
-		
+
 		//scroll synchronisation
 		var o = this; //TF object
 		this.tblCont.onscroll = function(){
@@ -3342,35 +3346,35 @@ TF.prototype = {
 			var _o = this; //this = scroll element
 			//New pointerX calc taking into account scrollLeft
 			if(!o.isPointerXOverwritten){
-				try{					
+				try{
 					TF.Evt.pointerX = function(e)
 					{
 						e = e || window.event;
 						var scrollLeft = tf_StandardBody().scrollLeft + _o.scrollLeft;
 						return (e.pageX + _o.scrollLeft) || (e.clientX + scrollLeft);
-					}					
+					}
 					o.isPointerXOverwritten = true;
 				} catch(ee) {
 					o.isPointerXOverwritten = false;
 				}
 			}
 		}
-	
+
 		/*** Default behaviours activation ***/
 		var f = this.fObj==undefined ? {} : this.fObj;
-		
+
 		//Sort is enabled if not specified in config object
 		if(f.sort != false){
 			this.sort = true;
 			this.sortConfig.asyncSort = true;
 			this.sortConfig.triggerIds = sortTriggers;
 		}
-		
+
 		if(this.gridEnableColResizer){
 			if(!this.hasExtensions){
 				this.extensions = {
 					name:['ColumnsResizer_'+this.id],
-					src:[this.gridColResizerPath], 
+					src:[this.gridColResizerPath],
 					description:['Columns Resizing'],
 					initialize:[function(o){o.SetColsResizer('ColumnsResizer_'+o.id);}]
 				}
@@ -3381,16 +3385,16 @@ TF.prototype = {
 					this.extensions.src.push(this.gridColResizerPath);
 					this.extensions.description.push('Columns Resizing');
 					this.extensions.initialize.push(function(o){o.SetColsResizer('ColumnsResizer_'+o.id);});
-				}  
+				}
 			}
 		}
-		
+
 		//Default columns resizer properties for grid layout
 		f.col_resizer_cols_headers_table = this.headTbl.getAttribute('id');
 		f.col_resizer_cols_headers_index = this.gridHeadRowIndex;
 		f.col_resizer_width_adjustment = 0;
 		f.col_enable_text_ellipsis = false;
-		
+
 		//Cols generation for all browsers excepted IE<=7
 		o.tblHasColTag = (tf_Tag(o.tbl,'col').length > 0) ? true : false;
 		if(!tf_isIE && !tf_isIE7){
@@ -3417,7 +3421,7 @@ TF.prototype = {
 				}
 			}
 		}
-		
+
 		//IE <= 7 needs an additional row for widths as col element width is not enough...
 		if(tf_isIE || tf_isIE7){
 			var tbody = tf_Tag(o.tbl,'tbody'), r;
@@ -3435,13 +3439,13 @@ TF.prototype = {
 			//Data table row with widths expressed
 			o.leadColWidthsRow = o.tbl.rows[0];
 			o.leadColWidthsRow.setAttribute('validRow','false');
-			
+
 			var beforeSortFn = tf_IsFn(f.on_before_sort) ? f.on_before_sort : null;
 			f.on_before_sort = function(o,colIndex){
 				o.leadColWidthsRow.setAttribute('validRow','false');
 				if(beforeSortFn!=null) beforeSortFn.call(null,o,colIndex);
-			} 
-			
+			}
+
 			var afterSortFn = tf_IsFn(f.on_after_sort) ? f.on_after_sort : null;
 			f.on_after_sort = function(o,colIndex){
 				if(o.leadColWidthsRow.rowIndex != 0){
@@ -3451,31 +3455,31 @@ TF.prototype = {
 					else o.tbl.moveRow(o.leadColWidthsRow.rowIndex, 0);
 				}
 				if(afterSortFn!=null) afterSortFn.call(null,o,colIndex);
-			}	
+			}
 		}
-		
+
 		var afterColResizedFn = tf_IsFn(f.on_after_col_resized) ? f.on_after_col_resized : null;
 		f.on_after_col_resized = function(o,colIndex){
 			if(colIndex==undefined) return;
 			var w = o.crWColsRow.cells[colIndex].style.width;
 			var col = o.gridColElms[colIndex];
 			col.style.width = w;
-			
+
 			var thCW = o.crWColsRow.cells[colIndex].clientWidth;
 			var tdCW = o.crWRowDataTbl.cells[colIndex].clientWidth;
-			
+
 			if(tf_isIE || tf_isIE7)
 				o.tbl.style.width = o.headTbl.clientWidth+'px';
-			
+
 			if(thCW != tdCW && !tf_isIE && !tf_isIE7)
-				o.headTbl.style.width = o.tbl.clientWidth+'px'; 
-			
-			if(afterColResizedFn!=null) afterColResizedFn.call(null,o,colIndex);			
-		}	
-		
+				o.headTbl.style.width = o.tbl.clientWidth+'px';
+
+			if(afterColResizedFn!=null) afterColResizedFn.call(null,o,colIndex);
+		}
+
 		if(this.tbl.clientWidth != this.headTbl.clientWidth)
 			this.tbl.style.width = this.headTbl.clientWidth+'px';
-		
+
 	},
 
 	RemoveGridLayout: function()
@@ -3483,33 +3487,33 @@ TF.prototype = {
 		- removes the grid layout
 	=====================================================*/
 	{
-		if(!this.gridLayout) return;		
+		if(!this.gridLayout) return;
 		var t = this.tbl.parentNode.removeChild(this.tbl);
 		this.tblMainCont.parentNode.insertBefore(t, this.tblMainCont);
 		this.tblMainCont.parentNode.removeChild( this.tblMainCont );
-	
+
 		this.tblMainCont = null;
 		this.headTblCont = null;
 		this.headTbl = null;
 		this.tblCont = null;
-		
+
 		this.tbl.outerHTML = this.sourceTblHtml;
 		this.tbl = tf_Id(this.id); //needed to keep reference
 	},
-	
+
 	SetPopupFilterIcons: function()
 	/*====================================================
 		- generates popup filters div
 	=====================================================*/
 	{
-		if(!this.popUpFilters) return;	
+		if(!this.popUpFilters) return;
 		this.isExternalFlt = true; //external filters behaviour is enabled
 		var f = this.fObj;
 		this.popUpImgFlt = 			f.popup_filters_image!=undefined //filter icon path
 										? f.popup_filters_image : this.themesPath+'icn_filter.gif';
 		this.popUpImgFltActive = 	f.popup_filters_image_active!=undefined //active filter icon path
 										? f.popup_filters_image_active : this.themesPath+'icn_filterActive.gif';
-		this.popUpImgFltHtml =		f.popup_filters_image_html!=undefined 
+		this.popUpImgFltHtml =		f.popup_filters_image_html!=undefined
 										? f.popup_filters_image_html : '<img src="'+ this.popUpImgFlt +'" alt="Column filter" />';
 		this.popUpDivCssClass =		f.popup_div_css_class!=undefined //defines css class for popup div containing filter
 										? f.popup_div_css_class : 'popUpFilter';
@@ -3526,11 +3530,11 @@ TF.prototype = {
 		this.popUpFltImgs = []; //stores filters icons
 		this.popUpFltElms = !this.popUpFltElmCache ? [] : this.popUpFltElmCache; //stores filters containers
 		this.popUpFltAdjustToContainer = true;
-		
+
 		var o = this;
 		for(var i=0; i<this.nbCells; i++){
 			if(this['col'+i] == this.fltTypeNone) continue;
-			var popUpSpan = tf_CreateElm('span', ['id', this.prfxPopUpSpan+this.id+'_'+i], ['ci',i]); 
+			var popUpSpan = tf_CreateElm('span', ['id', this.prfxPopUpSpan+this.id+'_'+i], ['ci',i]);
 			popUpSpan.innerHTML = this.popUpImgFltHtml;
 			var header = this.GetHeaderElement(i);
 			header.appendChild(popUpSpan);
@@ -3539,7 +3543,7 @@ TF.prototype = {
 				var colIndex = parseInt(this.getAttribute('ci'));
 				o.CloseAllPopupFilters(colIndex);
 				o.TogglePopupFilter(colIndex);
-				
+
 				if(o.popUpFltAdjustToContainer){
 					var popUpDiv = o.popUpFltElms[colIndex];
 					var header = o.GetHeaderElement(colIndex);
@@ -3557,7 +3561,7 @@ TF.prototype = {
 			this.popUpFltImgs[i] = popUpSpan.firstChild;
 		}
 	},
-	
+
 	SetPopupFilters: function()
 	/*====================================================
 		- generates all popup filters div
@@ -3566,7 +3570,7 @@ TF.prototype = {
 		for(var i=0; i<this.popUpFltElmCache.length; i++)
 			this.SetPopupFilter(i, this.popUpFltElmCache[i]);
 	},
-	
+
 	SetPopupFilter: function(colIndex, div)
 	/*====================================================
 		- generates a popup filters div for specifies
@@ -3581,7 +3585,7 @@ TF.prototype = {
 		popUpDiv.onclick = function(e){ tf_StopEvent(e || window.event); };
 		this.popUpFltElms[colIndex] = popUpDiv;
 	},
-	
+
 	TogglePopupFilter: function(colIndex)
 	/*====================================================
 		- toggles popup filters div
@@ -3599,7 +3603,7 @@ TF.prototype = {
 			if(this.onAfterPopUpClose!=null) this.onAfterPopUpClose.call(null,this, this.popUpFltElms[colIndex],colIndex);
 		}
 	},
-	
+
 	CloseAllPopupFilters: function(exceptColIndex)
 	/*====================================================
 		- closes all popup filters
@@ -3611,7 +3615,7 @@ TF.prototype = {
 			if(popUpFltElm) popUpFltElm.style.display = 'none';
 		}
 	},
-	
+
 	RemovePopupFilters: function()
 	/*====================================================
 		- removes popup filters div
@@ -3630,17 +3634,17 @@ TF.prototype = {
 			popUpFltSpan = null;
 		}
 	},
-	
+
 	SetPopupFilterIcon: function(colIndex, active)
 	/*====================================================
-		- sets inactive or active filter icon 
+		- sets inactive or active filter icon
 	=====================================================*/
 	{
 		var activeImg = active==undefined ? true : active;
 		if(this.popUpFltImgs[colIndex])
 			this.popUpFltImgs[colIndex].src = (active) ? this.popUpImgFltActive : this.popUpImgFlt;
 	},
-	
+
 	SetAllPopupFiltersIcon: function(active)
 	/*====================================================
 		- sets inactive or active filter icon for all
@@ -3651,7 +3655,7 @@ TF.prototype = {
 		for(var i=0; i<this.popUpFltImgs.length; i++)
 			this.SetPopupFilterIcon(i, false);
 	},
-	
+
 	RememberFiltersValue: function( name )
 	/*==============================================
 		- stores filters' values in a cookie
@@ -3673,9 +3677,9 @@ TF.prototype = {
 			name,
 			flt_values.join(this.separator),
 			this.cookieDuration
-		); //writes cookie  
+		); //writes cookie
 	},
-	
+
 	RememberPageNb: function( name )
 	/*==============================================
 		- stores page number value in a cookie
@@ -3688,9 +3692,9 @@ TF.prototype = {
 			name,
 			this.currentPageNb,
 			this.cookieDuration
-		); //writes cookie  
+		); //writes cookie
 	},
-	
+
 	RememberPageLength: function( name )
 	/*==============================================
 		- stores page length value in a cookie
@@ -3705,15 +3709,15 @@ TF.prototype = {
 			this.cookieDuration
 		); //writes cookie
 	},
-	
+
 	ResetValues: function()
-	{ 
-		this.EvtManager(this.Evt.name.resetvalues); 
+	{
+		this.EvtManager(this.Evt.name.resetvalues);
 	},
-	
+
 	_ResetValues: function()
 	/*==============================================
-		- re-sets grid values when page is 
+		- re-sets grid values when page is
 		re-loaded. It invokes ResetGridValues,
 		ResetPage and ResetPageLength methods
 		- Params:
@@ -3723,12 +3727,12 @@ TF.prototype = {
 		if(this.rememberGridValues && this.fillSlcOnDemand) //only fillSlcOnDemand
 			this.ResetGridValues(this.fltsValuesCookie);
 		if(this.rememberPageLen) this.ResetPageLength( this.pgLenCookie );
-		if(this.rememberPageNb) this.ResetPage( this.pgNbCookie );		
+		if(this.rememberPageNb) this.ResetPage( this.pgNbCookie );
 	},
-	
+
 	ResetGridValues: function( name )
 	/*==============================================
-		- re-sets filters' values when page is 
+		- re-sets filters' values when page is
 		re-loaded if load on demand is enabled
 		- Params:
 			- name: cookie name (string)
@@ -3737,21 +3741,21 @@ TF.prototype = {
 	{
 		if(!this.fillSlcOnDemand) return;
 		var flts = tf_ReadCookie(name); //reads the cookie
-		var reg = new RegExp(this.separator,'g');	
+		var reg = new RegExp(this.separator,'g');
 		var flts_values = flts.split(reg); //creates an array with filters' values
 		var slcFltsIndex = this.GetFiltersByType(this.fltTypeSlc, true);
 		var multiFltsIndex = this.GetFiltersByType(this.fltTypeMulti, true);
-		
+
 		if(flts_values[(flts_values.length-1)] == this.fltIds.length)
 		{//if the number of columns is the same as before page reload
 			for(var i=0; i<(flts_values.length - 1); i++)
-			{			
-				if (flts_values[i]==' ') continue;				
+			{
+				if (flts_values[i]==' ') continue;
 				if(this['col'+i]==this.fltTypeSlc || this['col'+i]==this.fltTypeMulti)
 				{// if fillSlcOnDemand, drop-down needs to contain stored value(s) for filtering
 					var slc = tf_Id( this.fltIds[i] );
 					slc.options[0].selected = false;
-					
+
 					if( slcFltsIndex.tf_Has(i) )
 					{//selects
 						var opt = tf_CreateOpt(flts_values[i],flts_values[i],true);
@@ -3767,7 +3771,7 @@ TF.prototype = {
 							var opt = tf_CreateOpt(s[j],s[j],true);
 							slc.appendChild(opt);
 							this.hasStoredValues = true;
-							
+
 							if(tf_isIE)
 							{// IE multiple selection work-around
 								this.__deferMultipleSelection(slc,j,false);
@@ -3781,16 +3785,16 @@ TF.prototype = {
 					var divChk = this.checkListDiv[i];
 					divChk.title = divChk.innerHTML;
 					divChk.innerHTML = '';
-					
+
 					var ul = tf_CreateElm('ul',['id',this.fltIds[i]],['colIndex',i]);
 					ul.className = this.checkListCssClass;
-	
+
 					var li0 = tf_CreateCheckItem(this.fltIds[i]+'_0', '', this.displayAllText);
 					li0.className = this.checkListItemCssClass;
 					ul.appendChild(li0);
-	
+
 					divChk.appendChild(ul);
-					
+
 					var s = flts_values[i].split(' '+this.orOperator+' ');
 					for(j=0; j<s.length; j++)
 					{
@@ -3801,14 +3805,14 @@ TF.prototype = {
 						li.check.checked = true;
 						this.__setCheckListValues(li.check);
 						this.hasStoredValues = true;
-					}					
+					}
 				}
 			}//end for
-			
+
 			if(!this.hasStoredValues && this.paging) this.SetPagingInfo();
 		}//end if
 	},
-	
+
 	SetRowBg: function(rIndex,index)
 	/*====================================================
 		- sets row background color
@@ -3827,7 +3831,7 @@ TF.prototype = {
 			(i%2) ? this.rowBgEvenCssClass : this.rowBgOddCssClass
 		);
 	},
-	
+
 	RemoveRowBg: function(index)
 	/*====================================================
 		- removes row background color
@@ -3840,7 +3844,7 @@ TF.prototype = {
 		tf_RemoveClass(rows[index],this.rowBgOddCssClass);
 		tf_RemoveClass(rows[index],this.rowBgEvenCssClass);
 	},
-	
+
 	SetAlternateRows: function()
 	/*====================================================
 		- alternates row colors for better readability
@@ -3852,7 +3856,7 @@ TF.prototype = {
 		var beginIndex = (noValidRowsIndex) ? this.refRow : 0; //1st index
 		var indexLen = (noValidRowsIndex) // nb indexes
 			? (this.nbFilterableRows+beginIndex) : this.validRowsIndex.length;
-	
+
 		var idx = 0;
 		for(var j=beginIndex; j<indexLen; j++)//alternates bg color
 		{
@@ -3861,7 +3865,7 @@ TF.prototype = {
 			idx++;
 		}
 	},
-	
+
 	RemoveAlternateRows: function()
 	/*====================================================
 		- removes alternate row colors
@@ -3873,24 +3877,24 @@ TF.prototype = {
 			this.RemoveRowBg(i);
 		this.isStartBgAlternate = true;
 	},
-	
+
 	SetFixedHeaders: function()
 	/*====================================================
 		- CSS solution making headers fixed
 	=====================================================*/
 	{
 		if((!this.hasGrid && !this.isFirstLoad) || !this.fixedHeaders) return;
-		if(this.contDiv) return;	
+		if(this.contDiv) return;
 		var thead = tf_Tag(this.tbl,'thead');
 		if( thead.length==0 ) return;
-		var tbody = tf_Tag(this.tbl,'tbody');	
-		if( tbody[0].clientHeight!=0 ) 
+		var tbody = tf_Tag(this.tbl,'tbody');
+		if( tbody[0].clientHeight!=0 )
 		{//firefox returns tbody height
 			//previous values
 			this.prevTBodyH = tbody[0].clientHeight;
 			this.prevTBodyOverflow = tbody[0].style.overflow;
 			this.prevTBodyOverflowX = tbody[0].style.overflowX;
-			
+
 			tbody[0].style.height = this.tBodyH+'px';
 			tbody[0].style.overflow = 'auto';
 			tbody[0].style.overflowX = 'hidden';
@@ -3903,29 +3907,29 @@ TF.prototype = {
 			this.contDiv = tf_Id(this.prfxContentDiv+this.id);
 			//prevents headers moving during window scroll (IE)
 			this.contDiv.style.position = 'relative';
-			
+
 			var theadH = 0;
-			var theadTr = tf_Tag(thead[0],'tr');	
+			var theadTr = tf_Tag(thead[0],'tr');
 			for(var i=0; i<theadTr.length; i++)
 			{//css below emulates fixed headers on IE<=6
 				theadTr[i].style.cssText += 'position:relative; ' +
 											'top:expression(offsetParent.scrollTop);';
 				theadH += parseInt(theadTr[i].clientHeight);
 			}
-			
+
 			this.contDiv.style.height = (this.tBodyH+theadH)+'px';
-			
+
 			var tfoot = tf_Tag(this.tbl,'tfoot');
 			if( tfoot.length==0 ) return;
-			
+
 			var tfootTr = tf_Tag(tfoot[0],'tr');
-				
+
 			for(var j=0; j<tfootTr.length; j++)//css below emulates fixed footer on IE<=6
 				tfootTr[j].style.cssText += 'position:relative; overflow-x: hidden; ' +
 											'top: expression(parentNode.parentNode.offsetHeight >= ' +
-											'offsetParent.offsetHeight ? 0 - parentNode.parentNode.offsetHeight + '+ 
-											'offsetParent.offsetHeight + offsetParent.scrollTop : 0);';		
-		}	
+											'offsetParent.offsetHeight ? 0 - parentNode.parentNode.offsetHeight + '+
+											'offsetParent.offsetHeight + offsetParent.scrollTop : 0);';
+		}
 	},
 
 	RemoveFixedHeaders: function()
@@ -3946,8 +3950,8 @@ TF.prototype = {
 			for(var i=0; i<theadTr.length; i++)
 				theadTr[i].style.cssText = '';
 			var tfoot = tf_Tag(this.tbl,'tfoot');
-			if( tfoot.length==0 ) return;		
-			var tfootTr = tf_Tag(tfoot[0],'tr');	
+			if( tfoot.length==0 ) return;
+			var tfootTr = tf_Tag(tfoot[0],'tr');
 			for(var j=0; j<tfootTr.length; j++)
 			{
 				tfootTr[j].style.position = 'relative';
@@ -3962,10 +3966,10 @@ TF.prototype = {
 			tbody[0].style.overflowX = this.prevTBodyOverflowX;
 		}
 	},
-	
+
 	Filter: function()
 	{
-		this.EvtManager(this.Evt.name.filter); 
+		this.EvtManager(this.Evt.name.filter);
 	},
 	_Filter: function()
 	/*====================================================
@@ -3973,31 +3977,31 @@ TF.prototype = {
 		- retrieves data from each td in every single tr
 		and compares to search string for current
 		column
-		- tr is hidden if all search strings are not 
+		- tr is hidden if all search strings are not
 		found
 	=====================================================*/
 	{
 		if(!this.fltGrid || (!this.hasGrid && !this.isFirstLoad)) return;
 		//invokes eventual onbefore method
 		if(this.onBeforeFilter) this.onBeforeFilter.call(null,this);
-		
+
 		if(this.inpWatermark != '') this.SetWatermark(false);
-		
-		var row = this.tbl.rows;	
+
+		var row = this.tbl.rows;
 		f = this.fObj!=undefined ? this.fObj : [];
 		var hiddenrows = 0;
 		this.validRowsIndex = [];
-		var o = this;		
-		
+		var o = this;
+
 		// removes keyword highlighting
 		if(this.highlightKeywords) this.UnhighlightAll();
-		//removes popup filters active icons 
+		//removes popup filters active icons
 		if(this.popUpFilters) this.SetAllPopupFiltersIcon();
 		//removes active column header class
 		if(this.markActiveColumns) this.ClearActiveColumns();
 		// search args re-init
-		this.searchArgs = this.GetFiltersValue(); 
-		
+		this.searchArgs = this.GetFiltersValue();
+
 		var num_cell_data, nbFormat;
 		var re_le = new RegExp(this.leOperator), re_ge = new RegExp(this.geOperator);
 		var re_l = new RegExp(this.lwOperator), re_g = new RegExp(this.grOperator);
@@ -4006,7 +4010,7 @@ TF.prototype = {
 		var re_en = new RegExp(this.enOperator), re_an = new RegExp(this.anOperator);
 		var re_cr = new RegExp(this.curExp), re_em = this.emOperator;
 		var re_nm = this.nmOperator, re_re = new RegExp(tf_RegexpEscape(this.rgxOperator));
-		
+
 		function highlight(str,ok,cell){//keyword highlighting
 			if(o.highlightKeywords && ok){
 				str = str.replace(re_lk,'');
@@ -4014,13 +4018,13 @@ TF.prototype = {
 				str = str.replace(re_st,'');
 				str = str.replace(re_en,'');
 				var w = str;
-				if(re_le.test(str) || re_ge.test(str) || re_l.test(str) || re_g.test(str) || re_d.test(str))	
+				if(re_le.test(str) || re_ge.test(str) || re_l.test(str) || re_g.test(str) || re_d.test(str))
 					w = tf_GetNodeText(cell);
 				if(w!='')
 					tf_HighlightWord(cell,w,o.highlightCssClass,o);
 			}
 		}
-		
+
 		//looks for search argument in current row
 		function hasArg(sA,cell_data,j)
 		{
@@ -4033,7 +4037,7 @@ TF.prototype = {
 			var hasST = re_st.test(sA), hasEN = re_en.test(sA);
 			var hasEM = (re_em == sA), hasNM = (re_nm == sA);
 			var hasRE = re_re.test(sA);
-			
+
 			//Search arg dates tests
 			var isLDate = (hasLO && tf_IsValidDate(sA.replace(re_l,''),dtType));
 			var isLEDate = (hasLE && tf_IsValidDate(sA.replace(re_le,''),dtType));
@@ -4045,32 +4049,32 @@ TF.prototype = {
 			if(tf_IsValidDate(cell_data,dtType))
 			{//dates
 				var dte1 = tf_FormatDate(cell_data,dtType);
-				if(isLDate) 
+				if(isLDate)
 				{// lower date
 					var dte2 = tf_FormatDate(sA.replace(re_l,''),dtType);
 					occurence = (dte1 < dte2);
 				}
-				else if(isLEDate) 
+				else if(isLEDate)
 				{// lower equal date
 					var dte2 = tf_FormatDate(sA.replace(re_le,''),dtType);
 					occurence = (dte1 <= dte2);
 				}
-				else if(isGEDate) 
+				else if(isGEDate)
 				{// greater equal date
 					var dte2 = tf_FormatDate(sA.replace(re_ge,''),dtType);
 					occurence = (dte1 >= dte2);
 				}
-				else if(isGDate) 
+				else if(isGDate)
 				{// greater date
 					var dte2 = tf_FormatDate(sA.replace(re_g,''),dtType);
 					occurence = (dte1 > dte2);
 				}
-				else if(isDFDate) 
+				else if(isDFDate)
 				{// different date
 					var dte2 = tf_FormatDate(sA.replace(re_d,''),dtType);
 					occurence = (dte1.toString() != dte2.toString());
 				}
-				else if(isEQDate) 
+				else if(isEQDate)
 				{// equal date
 					var dte2 = tf_FormatDate(sA.replace(re_eq,''),dtType);
 					occurence = (dte1.toString() == dte2.toString());
@@ -4086,13 +4090,13 @@ TF.prototype = {
 				}
 				else if(hasEM) //empty
 					occurence = (cell_data.tf_Trim()=='' ? true : false);
-				
+
 				else if(hasNM) //non-empty
 					occurence = (cell_data.tf_Trim()!='' ? true : false);
 			}
-			
-			else 
-			{						
+
+			else
+			{
 				//first numbers need to be formated
 				if(o.hasColNbFormat && o.colNbFormat[j]!=null)
 				{
@@ -4108,32 +4112,32 @@ TF.prototype = {
 						nbFormat = 'eu';
 					}
 				}
-				
+
 				// first checks if there is any operator (<,>,<=,>=,!,*,=,{,},rgx:)
 				if(hasLE) //lower equal
 					occurence = num_cell_data <= tf_RemoveNbFormat(sA.replace(re_le,''),nbFormat);
-				
+
 				else if(hasGE) //greater equal
 					occurence = num_cell_data >= tf_RemoveNbFormat(sA.replace(re_ge,''),nbFormat);
-				
+
 				else if(hasLO) //lower
 					occurence = num_cell_data < tf_RemoveNbFormat(sA.replace(re_l,''),nbFormat);
-					
+
 				else if(hasGR) //greater
-					occurence = num_cell_data > tf_RemoveNbFormat(sA.replace(re_g,''),nbFormat);							
-					
+					occurence = num_cell_data > tf_RemoveNbFormat(sA.replace(re_g,''),nbFormat);
+
 				else if(hasDF) //different
 					occurence = o.__containsStr(sA.replace(re_d,''),cell_data) ? false : true;
-			
+
 				else if(hasLK) //like
 					occurence = o.__containsStr(sA.replace(re_lk,''),cell_data,null,false);
-				
+
 				else if(hasEQ) //equal
 					occurence = o.__containsStr(sA.replace(re_eq,''),cell_data,null,true);
-				
+
 				else if(hasST) //starts with
 					occurence = cell_data.indexOf(sA.replace(re_st,''))==0 ? true : false;
-				
+
 				else if(hasEN) //ends with
 				{
 					var searchArg = sA.replace(re_en,'');
@@ -4141,51 +4145,51 @@ TF.prototype = {
 						&& cell_data.lastIndexOf(searchArg,cell_data.length-1) > -1
 						? true : false;
 				}
-				
+
 				else if(hasEM) //empty
 					occurence = (cell_data.tf_Trim()=='' ? true : false);
-				
+
 				else if(hasNM) //non-empty
 					occurence = (cell_data.tf_Trim()!='' ? true : false);
- 				
+
 				else if(hasRE){ //regexp
 					try{ //in case regexp fires an exception
 						var searchArg = sA.replace(re_re,''); //operator is removed
-						var rgx = new RegExp(searchArg); 
+						var rgx = new RegExp(searchArg);
 						occurence = rgx.test(cell_data);
 					} catch(e) { occurence = false; }
 				}
-				
+
 				else
 					occurence = o.__containsStr(sA,cell_data,(f['col_'+j]==undefined) ? this.fltTypeInp : f['col_'+j]);
-				
+
 			}//else
 			return occurence;
 		}//fn
-		
+
 		for(var k=this.refRow; k<this.nbRows; k++)
 		{
 			/*** if table already filtered some rows are not visible ***/
 			if(row[k].style.display == 'none') row[k].style.display = '';
-					
+
 			var cell = row[k].cells;
-			var nchilds = cell.length;			
-			
+			var nchilds = cell.length;
+
 			// checks if row has exact cell #
 			if(nchilds != this.nbCells) continue;
-	
+
 			var occurence = [];
 			var isRowValid = (this.searchType=='include') ? true : false;
 			var singleFltRowValid = false; //only for single filter search
-			
+
 			for(var j=0; j<nchilds; j++)
 			{// this loop retrieves cell data
 				var sA = this.searchArgs[(this.singleSearchFlt) ? 0 : j]; //searched keyword
 				var dtType = (this.hasColDateType) ? this.colDateType[j] : this.defaultDateType;
 				if(sA=='') continue;
-				
+
 				var cell_data = this.GetCellData(j, cell[j]).tf_MatchCase(this.matchCase);
-	
+
 				var sAOrSplit = sA.split(this.orOperator);//multiple search parameter operator ||
 				var hasMultiOrSA = (sAOrSplit.length>1) ? true : false;//multiple search || parameter boolean
 				var sAAndSplit = sA.split(this.anOperator);//multiple search parameter operator &&
@@ -4205,11 +4209,11 @@ TF.prototype = {
 					}
 					occurence[j] = occur;
 				}
-				else {//single search parameter		
+				else {//single search parameter
 					occurence[j] = hasArg(sA.tf_Trim(),cell_data,j);
 					highlight(sA,occurence[j],cell[j]);
 				}//else single param
-				
+
 				if(!occurence[j]) isRowValid = (this.searchType=='include') ? false : true;
 				if(this.singleSearchFlt && occurence[j]) singleFltRowValid = true;
 				if(this.popUpFilters) this.SetPopupFilterIcon(j, true);
@@ -4221,9 +4225,9 @@ TF.prototype = {
 					}
 				}
 			}//for j
-			
+
 			if(this.singleSearchFlt && singleFltRowValid) isRowValid = true;
-			
+
 			if(!isRowValid)
 			{
 				this.SetRowValidation(k,false);
@@ -4239,21 +4243,21 @@ TF.prototype = {
 				if(this.onRowValidated) this.onRowValidated.call(null,this,k);
 			}
 		}// for k
-		
+
 		this.nbVisibleRows = this.validRowsIndex.length;
 		this.nbHiddenRows = hiddenrows;
 		this.isStartBgAlternate = false;
 		if(this.rememberGridValues) this.RememberFiltersValue(this.fltsValuesCookie);
 		if(!this.paging) this.ApplyGridProps();//applies filter props after filtering process
-		if(this.paging){ 
-			this.startPagingRow = 0; 
+		if(this.paging){
+			this.startPagingRow = 0;
 			this.currentPageNb = 1;
-			this.SetPagingInfo(this.validRowsIndex); 
+			this.SetPagingInfo(this.validRowsIndex);
 		}//starts paging process
 		//invokes eventual onafter function
 		if(this.onAfterFilter) this.onAfterFilter.call(null,this);
 	},
-	
+
 	ApplyGridProps: function()
 	/*====================================================
 		- checks methods that should be called
@@ -4262,28 +4266,28 @@ TF.prototype = {
 	{
 		if(this.activeFlt && this.activeFlt.nodeName.tf_LCase()==this.fltTypeSlc && !this.popUpFilters)
 		{// blurs active filter (IE)
-			this.activeFlt.blur(); 
-			if(this.activeFlt.parentNode) this.activeFlt.parentNode.focus(); 
+			this.activeFlt.blur();
+			if(this.activeFlt.parentNode) this.activeFlt.parentNode.focus();
 		}
-		
+
 		if(this.visibleRows) this.SetVisibleRows();//shows rows always visible
 		if(this.colOperation) this.SetColOperation();//makes operation on a col
 		if(this.refreshFilters) this.RefreshFiltersGrid();//re-populates drop-down filters
-		var nr = (!this.paging && this.hasVisibleRows) 
+		var nr = (!this.paging && this.hasVisibleRows)
 					? (this.nbVisibleRows - this.visibleRows.length) : this.nbVisibleRows;
 		if(this.rowsCounter) this.RefreshNbRows(nr);//refreshes rows counter
-		
+
 		if(this.inpWatermark != '') this.SetWatermark(true);
 		if(this.popUpFilters) this.CloseAllPopupFilters();
 	},
-	
+
 	GetColValues: function(colindex,num,exclude)
 	/*====================================================
 		- returns an array containing cell values of
 		a column
 		- needs following args:
 			- column index (number)
-			- a boolean set to true if we want only 
+			- a boolean set to true if we want only
 			numbers to be returned
 			- array containing rows index to be excluded
 			from returned values
@@ -4292,7 +4296,7 @@ TF.prototype = {
 		if(!this.fltGrid) return;
 		var row = this.tbl.rows;
 		var colValues = [];
-	
+
 		for(var i=this.refRow; i<this.nbRows; i++)//iterates rows
 		{
 			var isExludedRow = false;
@@ -4302,7 +4306,7 @@ TF.prototype = {
 			}
 			var cell = row[i].cells;
 			var nchilds = cell.length;
-			
+
 			if(nchilds == this.nbCells && !isExludedRow)
 			{// checks if row has exact cell # and is not excluded
 				for(var j=0; j<nchilds; j++)// this loop retrieves cell data
@@ -4311,15 +4315,15 @@ TF.prototype = {
 					{
 						var cell_data = this.GetCellData(j, cell[j]).tf_LCase();
 						var nbFormat = this.colNbFormat ? this.colNbFormat[colindex] : null;
-						(num) ? colValues.push(tf_RemoveNbFormat(cell_data,nbFormat)) 
+						(num) ? colValues.push(tf_RemoveNbFormat(cell_data,nbFormat))
 								: colValues.push(cell_data);
 					}//if j==k
 				}//for j
 			}//if nchilds == this.nbCells
 		}//for i
-		return colValues;	
+		return colValues;
 	},
-	
+
 	GetFilterValue: function(index)
 	/*====================================================
 		- Returns value of a specified filter
@@ -4331,14 +4335,14 @@ TF.prototype = {
 		var fltValue;
 		var flt = this.GetFilterElement(index);
 		if(flt==null) return fltValue='';
-		
-		if(this['col'+index]!=this.fltTypeMulti && 
+
+		if(this['col'+index]!=this.fltTypeMulti &&
 			this['col'+index]!=this.fltTypeCheckList)
 			fltValue = flt.value;
 		else if(this['col'+index] == this.fltTypeMulti)
 		{//mutiple select
 			fltValue = '';
-			for(var j=0; j<flt.options.length; j++) 
+			for(var j=0; j<flt.options.length; j++)
 				if(flt.options[j].selected)
 					fltValue = fltValue.concat(
 								flt.options[j].value+' ' +
@@ -4355,10 +4359,10 @@ TF.prototype = {
 				//removes last operator ||
 				fltValue = fltValue.substr(0,fltValue.length-3);
 			} else fltValue = '';
-		}			
+		}
 		return fltValue;
 	},
-	
+
 	GetFiltersValue: function()
 	/*====================================================
 		- Returns the value of every single filter
@@ -4372,7 +4376,7 @@ TF.prototype = {
 			);
 		return searchArgs;
 	},
-	
+
 	GetFilterId: function(index)
 	/*====================================================
 		- Returns filter id of a specified column
@@ -4383,10 +4387,10 @@ TF.prototype = {
 		if(!this.fltGrid) return;
 		return this.fltIds[i];
 	},
-	
+
 	GetFiltersByType: function(type,bool)
 	/*====================================================
-		- returns an array containing ids of filters of a 
+		- returns an array containing ids of filters of a
 		specified type (inputs or selects)
 		- Note that hidden filters are also returned
 		- Needs folllowing args:
@@ -4409,7 +4413,7 @@ TF.prototype = {
 		}
 		return arr;
 	},
-	
+
 	GetFilterElement: function(index)
 	/*====================================================
 		- returns filter DOM element for a given column
@@ -4419,21 +4423,21 @@ TF.prototype = {
 		if(!this.fltGrid) return null;
 		return tf_Id(this.fltIds[index]);
 	},
-	
+
 	GetCellsNb: function(rowIndex)
 	/*====================================================
 		- returns number of cells in a row
-		- if rowIndex param is passed returns number of 
+		- if rowIndex param is passed returns number of
 		cells of specified row (number)
 	=====================================================*/
 	{
 		var tr = (rowIndex == undefined) ? this.tbl.rows[0] : this.tbl.rows[rowIndex];
 		return tr.cells.length;
 	},
-	
+
 	GetRowsNb: function(includeHeaders)
 	/*====================================================
-		- returns total nb of filterable rows starting 
+		- returns total nb of filterable rows starting
 		from reference row if defined
 		- Param:
 			- includeHeaders: if true header rows are
@@ -4445,7 +4449,7 @@ TF.prototype = {
 		if(includeHeaders){ s = 0; }
 		return parseInt(ntrs-s);
 	},
-	
+
 	GetCellData: function(i, cell)
 	/*====================================================
 		- returns text content of a given cell
@@ -4461,7 +4465,7 @@ TF.prototype = {
 		else
 			return tf_GetNodeText(cell);
 	},
-	
+
 	GetTableData: function()
 	/*====================================================
 		- returns an array containing table data:
@@ -4483,7 +4487,7 @@ TF.prototype = {
 		}
 		return this.tblData;
 	},
-	
+
 	GetFilteredData: function(includeHeaders)
 	/*====================================================
 		- returns an array containing filtered data:
@@ -4520,11 +4524,11 @@ TF.prototype = {
 		}
 		return filteredData;
 	},
-	
+
 	GetFilteredDataCol: function(colIndex)
 	/*====================================================
 		- returns an array containing filtered data of a
-		specified column. 
+		specified column.
 		- Params:
 			- colIndex: index of the column (number)
 		- returned array:
@@ -4543,16 +4547,16 @@ TF.prototype = {
 		}
 		return colData;
 	},
-	
+
 	GetRowDisplay: function(row)
 	{
 		if(!this.fltGrid && !tf_IsObj(row)) return;
 		return row.style.display;
 	},
-	
+
 	SetRowValidation: function(rowIndex,isValid)
 	/*====================================================
-		- Validates/unvalidates row by setting 'validRow' 
+		- Validates/unvalidates row by setting 'validRow'
 		attribute and shows/hides row
 		- Params:
 			- rowIndex: index of the row (number)
@@ -4561,19 +4565,19 @@ TF.prototype = {
 	{
 		var row = this.tbl.rows[rowIndex];
 		if(!row || (typeof isValid).tf_LCase()!='boolean') return;
-	
+
 		// always visible rows are valid
 		if(this.hasVisibleRows && this.visibleRows.tf_Has(rowIndex) && !this.paging)
 			isValid = true;
-		
+
 		var displayFlag = (isValid) ? '' : 'none';
-		var validFlag = (isValid) ? 'true' : 'false';		
+		var validFlag = (isValid) ? 'true' : 'false';
 		row.style.display = displayFlag;
-		
-		if(this.paging) 
+
+		if(this.paging)
 			row.setAttribute('validRow',validFlag);
 	},
-	
+
 	ValidateAllRows: function()
 	/*====================================================
 		- Validates all filterable rows
@@ -4587,7 +4591,7 @@ TF.prototype = {
 			this.validRowsIndex.push(k);
 		}
 	},
-	
+
 	SetFilterValue: function(index,searcharg,doFilter)
 	/*====================================================
 		- Inserts value in a specified filter
@@ -4595,7 +4599,7 @@ TF.prototype = {
 			- index: filter column index (numeric value)
 			- searcharg: search string
 			- doFilter: optional boolean for multiple
-			selects: executes filtering when multiple 
+			selects: executes filtering when multiple
 			select populated... IE only!
 	=====================================================*/
 	{
@@ -4603,19 +4607,19 @@ TF.prototype = {
 		var slc = this.GetFilterElement(index);
 		var execFilter = (doFilter==undefined) ? true : doFilter;
 		searcharg = (searcharg==undefined) ? '' : searcharg;
-		
-		if(this['col'+index]!=this.fltTypeMulti && 
+
+		if(this['col'+index]!=this.fltTypeMulti &&
 			this['col'+index]!=this.fltTypeCheckList){
 			slc.value = searcharg;
 			if(this['col'+index]==this.fltTypeInp && this.inpWatermark!='')
 				tf_RemoveClass(slc, this.inpWatermarkCssClass);
 		}
-			
+
 		else if(this['col'+index] == this.fltTypeMulti)
 		{//multiple selects
 			var s = searcharg.split(' '+this.orOperator+' ');
 			var ct = 0; //keywords counter
-			for(var j=0; j<slc.options.length; j++) 
+			for(var j=0; j<slc.options.length; j++)
 			{
 				if(s=='') slc.options[j].selected = false;
 				if(slc.options[j].value=='') slc.options[j].selected = false;
@@ -4627,20 +4631,20 @@ TF.prototype = {
 						var filter = (ct==(s.length-1) && execFilter) ? true : false;
 						this.__deferMultipleSelection(slc,j,filter);
 						ct++;
-					}					
+					}
 					else
 						slc.options[j].selected = true;
 				}//if
 			}//for j
 		}
-		
+
 		else if(this['col'+index]==this.fltTypeCheckList)
 		{//checklist
 			searcharg = searcharg.tf_MatchCase(this.matchCase);
 			var s = searcharg.split(' '+this.orOperator+' ');
 			var fltValue = slc.setAttribute('value','');
 			var fltIndex = slc.setAttribute('indexes','');
-			for(var k=0; k<tf_Tag(slc,'li').length; k++) 
+			for(var k=0; k<tf_Tag(slc,'li').length; k++)
 			{
 				var li = tf_Tag(slc,'li')[k];
 				var lbl = tf_Tag(li,'label')[0];
@@ -4651,7 +4655,7 @@ TF.prototype = {
 					chk.checked = true;
 					this.__setCheckListValues(chk);
 				}
-				else{ 
+				else{
 					chk.checked = false;
 					this.__setCheckListValues(chk);
 				}
@@ -4678,7 +4682,7 @@ TF.prototype = {
 					row.cells[k].style.width = o.colWidth[k];
 		}
 	},
-	
+
 	SetVisibleRows: function()
 	/*====================================================
 		- makes a row always visible
@@ -4694,11 +4698,11 @@ TF.prototype = {
 			}//for i
 		}//if hasGrid
 	},
-	
+
 	ClearFilters: function()
-	{ 
-		this.EvtManager(this.Evt.name.clear); 
-	},	
+	{
+		this.EvtManager(this.Evt.name.clear);
+	},
 	_ClearFilters: function()
 	/*====================================================
 		- clears grid filters
@@ -4709,14 +4713,14 @@ TF.prototype = {
 		for(var i=0; i<this.fltIds.length; i++)
 			this.SetFilterValue(i,'');
 		if(this.refreshFilters){
-			this.activeFilterId = '';	
+			this.activeFilterId = '';
 			this.RefreshFiltersGrid();
 		}
 		if(this.rememberPageLen){ tf_RemoveCookie(this.pgLenCookie); }
 		if(this.rememberPageNb){ tf_RemoveCookie(this.pgNbCookie); }
 		if(this.onAfterReset){ this.onAfterReset.call(null, this); }
 	},
-	
+
 	ClearActiveColumns: function()
 	/*====================================================
 		- clears active columns header class name
@@ -4725,7 +4729,7 @@ TF.prototype = {
 		for(var i=0; i<this.fltIds.length; i++)
 			tf_RemoveClass(this.GetHeaderElement(i), this.activeColumnsCssClass);
 	},
-	
+
 	RefreshGrid: function(config)
 	/*====================================================
 		- Re-generates filters grid
@@ -4747,7 +4751,7 @@ TF.prototype = {
 			this.sort = true; //finally sort property is enabled again
 		}
 	},
-	
+
 	RefreshFiltersGrid: function()
 	/*====================================================
 		- retrieves select, multiple and checklist filters
@@ -4759,7 +4763,7 @@ TF.prototype = {
 		var slcA3 = this.GetFiltersByType( this.fltTypeCheckList,true );
 		var slcIndex = slcA1.concat(slcA2);
 		slcIndex = slcIndex.concat(slcA3);
-	
+
 		if( this.activeFilterId!=null )//for paging
 		{
 			var activeFlt = this.activeFilterId.split('_')[0];
@@ -4769,59 +4773,59 @@ TF.prototype = {
 			{
 				var curSlc = tf_Id(this.fltIds[slcIndex[i]]);
 				slcSelectedValue = this.GetFilterValue( slcIndex[i] );
-				if(activeFlt!=slcIndex[i] || (this.paging && slcA1.tf_Has(slcIndex[i]) && activeFlt==slcIndex[i] ) || 
-					( !this.paging && (slcA3.tf_Has(slcIndex[i]) || slcA2.tf_Has(slcIndex[i]) )) || 
+				if(activeFlt!=slcIndex[i] || (this.paging && slcA1.tf_Has(slcIndex[i]) && activeFlt==slcIndex[i] ) ||
+					( !this.paging && (slcA3.tf_Has(slcIndex[i]) || slcA2.tf_Has(slcIndex[i]) )) ||
 					slcSelectedValue==this.displayAllText )
 				{
 					if(slcA3.tf_Has(slcIndex[i]))
 						this.checkListDiv[slcIndex[i]].innerHTML = '';
 					else curSlc.innerHTML = '';
-					
+
 					if(this.fillSlcOnDemand) { //1st option needs to be inserted
 						var opt0 = tf_CreateOpt(this.displayAllText,'');
 						if(curSlc) curSlc.appendChild( opt0 );
 					}
-					
+
 					if(slcA3.tf_Has(slcIndex[i]))
 						this._PopulateCheckList(slcIndex[i]);
 					else
 						this._PopulateSelect(slcIndex[i],true);
-						
+
 					this.SetFilterValue(slcIndex[i],slcSelectedValue);
 				}
 			}// for i
 		}
 	},
-	
+
 	SetColOperation: function()
 	/*====================================================
 		- Calculates values of a column
 		- params are stored in 'colOperation' table's
 		attribute
-			- colOperation['id'] contains ids of elements 
+			- colOperation['id'] contains ids of elements
 			showing result (array)
-			- colOperation['col'] contains index of 
+			- colOperation['col'] contains index of
 			columns (array)
 			- colOperation['operation'] contains operation
 			type (array, values: sum, mean)
-			- colOperation['write_method'] array defines 
-			which method to use for displaying the 
+			- colOperation['write_method'] array defines
+			which method to use for displaying the
 			result (innerHTML, setValue, createTextNode).
 			Note that innerHTML is the default value.
-			- colOperation['tot_row_index'] defines in 
+			- colOperation['tot_row_index'] defines in
 			which row results are displayed (integers array)
-			
-		- changes made by nuovella: 
-		(1) optimized the routine (now it will only 
+
+		- changes made by nuovella:
+		(1) optimized the routine (now it will only
 		process each column once),
-		(2) added calculations for the median, lower and 
+		(2) added calculations for the median, lower and
 		upper quartile.
 	=====================================================*/
 	{
 		if( !this.isFirstLoad && !this.hasGrid ) return;
-		
+
 		if(this.onBeforeOperation) this.onBeforeOperation.call(null,this);
-		
+
 		var labelId = this.colOperation['id'];
 		var colIndex = this.colOperation['col'];
 		var operation = this.colOperation['operation'];
@@ -4830,13 +4834,13 @@ TF.prototype = {
 		var excludeRow = this.colOperation['exclude_row'];
 		var decimalPrecision = this.colOperation['decimal_precision']!=undefined
 								? this.colOperation['decimal_precision'] : 2;
-		
+
 		//nuovella: determine unique list of columns to operate on
-		var ucolIndex =[]; 
+		var ucolIndex =[];
 		var ucolMax=0;
-		
+
 		ucolIndex[ucolMax]=colIndex[0];
-		
+
 		for(var i=1; i<colIndex.length; i++)
 		{
 			saved=0;
@@ -4852,21 +4856,21 @@ TF.prototype = {
 				ucolIndex[ucolMax]=colIndex[i];
 			}
 		}// for i
-		
-		if( (typeof labelId).tf_LCase()=='object' 
-			&& (typeof colIndex).tf_LCase()=='object' 
+
+		if( (typeof labelId).tf_LCase()=='object'
+			&& (typeof colIndex).tf_LCase()=='object'
 			&& (typeof operation).tf_LCase()=='object' )
 		{
 			var row = this.tbl.rows;
 			var colvalues = [];
-			
+
 			for(var ucol=0; ucol<=ucolMax; ucol++)
 			{
-				//this retrieves col values 
+				//this retrieves col values
 				//use ucolIndex because we only want to pass through this loop once for each column
 				//get the values in this unique column
 				colvalues.push( this.GetColValues(ucolIndex[ucol],true,excludeRow) );
-				
+
 			   //next: calculate all operations for this column
 			   var result, nbvalues=0,  temp;
 			   var meanValue=0, sumValue=0, minValue=null, maxValue=null, q1Value=null, medValue=null, q3Value=null;
@@ -4874,7 +4878,7 @@ TF.prototype = {
 			   var theList=[];
 			   var opsThisCol=[], decThisCol=[], labThisCol=[], oTypeThisCol=[];
 			   var mThisCol=-1;
-				
+
 				for(var i=0; i<colIndex.length; i++)
 				{
 					 if (colIndex[i]==ucolIndex[ucol])
@@ -4882,12 +4886,12 @@ TF.prototype = {
 						mThisCol++;
 						opsThisCol[mThisCol]=operation[i].tf_LCase();
 						decThisCol[mThisCol]=decimalPrecision[i];
-						labThisCol[mThisCol]=labelId[i]; 
-						oTypeThisCol = (outputType != undefined && (typeof outputType).tf_LCase()=='object') 
+						labThisCol[mThisCol]=labelId[i];
+						oTypeThisCol = (outputType != undefined && (typeof outputType).tf_LCase()=='object')
 											? outputType[i] : null;
-						
+
 						switch( opsThisCol[mThisCol] )
-						{			
+						{
 							case 'mean':
 								meanFlag=1;
 							break;
@@ -4901,7 +4905,7 @@ TF.prototype = {
 								maxFlag=1;
 							break;
 							case 'median':
-								medFlag=1;	
+								medFlag=1;
 								break;
 							case 'q1':
 								q1Flag=1;
@@ -4910,9 +4914,9 @@ TF.prototype = {
 								q3Flag=1;
 							break;
 						}
-					}		
+					}
 				}
-				
+
 				for(var j=0; j<colvalues[ucol].length; j++ )
 				{
 					if ((q1Flag==1)||(q3Flag==1) || (medFlag==1))
@@ -4920,24 +4924,24 @@ TF.prototype = {
 						if (j<colvalues[ucol].length -1)
 						{
 							for(k=j+1;k<colvalues[ucol].length; k++) {
-				  
+
 								if( eval(colvalues[ucol][k]) < eval(colvalues[ucol][j]))
 								{
-									temp = colvalues[ucol][j];            
-									colvalues[ucol][j] = colvalues[ucol][k];              
-									colvalues[ucol][k] = temp;            
+									temp = colvalues[ucol][j];
+									colvalues[ucol][j] = colvalues[ucol][k];
+									colvalues[ucol][k] = temp;
 								}
 							}
 						}
 					}
 					var cvalue = parseFloat(colvalues[ucol][j]);
 					theList[j]=parseFloat( cvalue );
-	
+
 					if( !isNaN(cvalue) )
 					{
 						nbvalues++;
 						if ((sumFlag==1)|| (meanFlag==1)) sumValue += parseFloat( cvalue );
-						if (minFlag==1) 
+						if (minFlag==1)
 						{
 							if (minValue==null)
 							{
@@ -4956,15 +4960,15 @@ TF.prototype = {
 				if (medFlag==1)
 				{
 						var aux = 0;
-						if(nbvalues%2 == 1) 
+						if(nbvalues%2 == 1)
 						{
 							aux = Math.floor(nbvalues/2);
-							medValue = theList[aux];   
+							medValue = theList[aux];
 						}
 					else medValue = (theList[nbvalues/2]+theList[((nbvalues/2)-1)])/2;
 				}
 				if (q1Flag==1)
-				{	
+				{
 					var posa=0.0;
 					posa = Math.floor(nbvalues/4);
 					if (4*posa == nbvalues) {q1Value = (theList[posa-1] + theList[posa])/2;}
@@ -4978,16 +4982,16 @@ TF.prototype = {
 					if (4*posa == nbvalues)
 					{
 						posb = 3*posa;
-						q3Value = (theList[posb] + theList[posb-1])/2;  
+						q3Value = (theList[posb] + theList[posb-1])/2;
 					}
 					else
 						q3Value = theList[nbvalues-posa-1];
 				}
-				
+
 				for(var i=0; i<=mThisCol; i++ )
 				{
 				   switch( opsThisCol[i] )
-				   {			
+				   {
 						case 'mean':
 							result=meanValue;
 						break;
@@ -5001,7 +5005,7 @@ TF.prototype = {
 							result=maxValue;
 						break;
 						case 'median':
-							result=medValue;	
+							result=medValue;
 							break;
 						case 'q1':
 							result=q1Value;
@@ -5009,11 +5013,11 @@ TF.prototype = {
 						case 'q3':
 							result=q3Value;
 						break;
-				  }		
-					
+				  }
+
 				var precision = decThisCol[i]!=undefined && !isNaN( decThisCol[i] )
 									? decThisCol[i] : 2;
-	
+
 				if(oTypeThisCol!=null && result)
 				{//if outputType is defined
 					result = result.toFixed( precision );
@@ -5021,8 +5025,8 @@ TF.prototype = {
 					{
 						switch( oTypeThisCol.tf_LCase() )
 						{
-							case 'innerhtml':							
-								if (isNaN(result) || !isFinite(result) || (nbvalues==0)) 
+							case 'innerhtml':
+								if (isNaN(result) || !isFinite(result) || (nbvalues==0))
 									tf_Id( labThisCol[i] ).innerHTML = '.';
 								else
 									tf_Id( labThisCol[i] ).innerHTML = result;
@@ -5039,8 +5043,8 @@ TF.prototype = {
 					}
 				} else {
 					try
-					{      
-						if (isNaN(result) || !isFinite(result) || (nbvalues==0)) 
+					{
+						if (isNaN(result) || !isFinite(result) || (nbvalues==0))
 							tf_Id( labThisCol[i] ).innerHTML = '.';
 						else
 							 tf_Id( labThisCol[i] ).innerHTML = result.toFixed( precision );
@@ -5048,14 +5052,14 @@ TF.prototype = {
 				}//else
 			 }//for i
 			//eventual row(s) with result are always visible
-			if(totRowIndex!=undefined && row[totRowIndex[ucol]]) 
+			if(totRowIndex!=undefined && row[totRowIndex[ucol]])
 				row[totRowIndex[ucol]].style.display = '';
 			}//for ucol
 		}//if typeof
-		
+
 		if(this.onAfterOperation) this.onAfterOperation.call(null,this);
 	},
-	
+
 	UnhighlightAll: function()
 	/*====================================================
 		- removes keyword highlighting
@@ -5068,11 +5072,11 @@ TF.prototype = {
 			this.highlightedNodes = [];
 		}
 	},
-	
+
 	/*====================================================
 		- Private methods
 	=====================================================*/
-	
+
 	__resetGrid: function()
 	/*====================================================
 		- Only used by AddGrid() method
@@ -5083,27 +5087,27 @@ TF.prototype = {
 
 		// grid was removed, grid row element is stored in fltGridEl property
 		if(!this.gridLayout){
-			this.tbl.rows[this.filtersRowIndex].parentNode.insertBefore( 
+			this.tbl.rows[this.filtersRowIndex].parentNode.insertBefore(
 				this.fltGridEl,
 				this.tbl.rows[this.filtersRowIndex]
 			);
 		}
-		
+
 		if(this.isExternalFlt)
 		{// filters are appended in external placeholders elements
 			for(var ct=0; ct<this.externalFltTgtIds.length; ct++)
 				if(tf_Id(this.externalFltTgtIds[ct])){
 					tf_Id(this.externalFltTgtIds[ct]).appendChild(this.externalFltEls[ct]);
-					
+
 					//IE special treatment for gridLayout, appended filters are empty
 					if(this.gridLayout && this.externalFltEls[ct].innerHTML=='' && this['col'+ct] != this.fltTypeInp){
-						if(this['col'+ct] == this.fltTypeSlc || this['col'+ct] == this.fltTypeMulti) 
+						if(this['col'+ct] == this.fltTypeSlc || this['col'+ct] == this.fltTypeMulti)
 							this.PopulateSelect(ct);
 						if(this['col'+ct] == this.fltTypeCheckList) this.PopulateCheckList(ct);
 					}
 				}
 		}
-				
+
 		this.nbFilterableRows = this.GetRowsNb();
 		this.nbVisibleRows = this.nbFilterableRows;
 		this.nbRows = this.tbl.rows.length;
@@ -5113,9 +5117,9 @@ TF.prototype = {
 			refreshFilters(this);
 		else
 			if(this.popUpFilters){ this.headersRow++; this.SetPopupFilters(); }
-		
+
 		/*** 	ie bug work-around, filters need to be re-generated
-				since row is empty; insertBefore method doesn't seem to work properly 
+				since row is empty; insertBefore method doesn't seem to work properly
 				with previously generated DOM nodes modified by innerHTML 	***/
 		function refreshFilters(o){
 			o.tbl.deleteRow(o.filtersRowIndex);
@@ -5125,11 +5129,11 @@ TF.prototype = {
 			if(o.popUpFilters) o.RemovePopupFilters();
 			o._AddGrid();
 		}
-		
+
 		if(!this.gridLayout) tf_AddClass(this.tbl, this.prfxTf);
 		this.hasGrid = true;
 	},
-	
+
 	__containsStr: function(arg,data,fltType,forceMatch)
 	/*==============================================
 		- Checks if data contains searched arg,
@@ -5137,8 +5141,8 @@ TF.prototype = {
 		- Params:
 			- arg: searched string
 			- data: data string
-			- fltType: filter type (string, 
-			exact match by default for selects - 
+			- fltType: filter type (string,
+			exact match by default for selects -
 			optional)
 			- forceMatch: boolean forcing exact
 			match (optional)
@@ -5150,20 +5154,20 @@ TF.prototype = {
 		var modifier = (this.matchCase) ? 'g' : 'gi';
 		var exactMatch = (forceMatch==undefined) ? this.exactMatch : forceMatch;
 		if(exactMatch || (fltType!=this.fltTypeInp && fltType!=undefined))//Váry Péter's patch
-			regexp = new RegExp('(^\\s*)'+tf_RegexpEscape(arg)+'(\\s*$)', modifier);							
+			regexp = new RegExp('(^\\s*)'+tf_RegexpEscape(arg)+'(\\s*$)', modifier);
 		else
 			regexp = new RegExp(tf_RegexpEscape(arg), modifier);
 		return regexp.test(data);
 	},
-	
+
 	IncludeFile: function(fileId, filePath, callback, type)
 	{
 		var ftype = (type==undefined) ? 'script' : type;
 		var isImported = tf_IsImported(filePath, ftype);
 		if(isImported) return;
-		var o = this, isLoaded = false, file;			
+		var o = this, isLoaded = false, file;
 		var head = tf_Tag(document,'head')[0];
-		
+
 		if(ftype.tf_LCase() == 'link')
 			file = tf_CreateElm(
 						'link', ['id',fileId], ['type','text/css'],
@@ -5171,25 +5175,25 @@ TF.prototype = {
 					);
 		else
 			file = tf_CreateElm(
-						'script', ['id',fileId], 
+						'script', ['id',fileId],
 						['type','text/javascript'], ['src',filePath]
 					);
-		
+
 		file.onload = file.onreadystatechange = function()
 		{//Browser <> IE onload event works only for scripts, not for stylesheets
-			if(!isLoaded && 
-				(!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) 
+			if(!isLoaded &&
+				(!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete'))
 			{
 				isLoaded = true;
 				if(typeof callback === 'function'){	callback.call(null,o); }
 			}
 		}
-		file.onerror = function(){ 
+		file.onerror = function(){
 			throw new Error('TF script could not load:\n' + this.src);
 		}
 		head.appendChild(file);
 	},
-	
+
 	HasGrid: function()
 	/*====================================================
 		- checks if table has a filter grid
@@ -5198,7 +5202,7 @@ TF.prototype = {
 	{
 		return this.hasGrid;
 	},
-	
+
 	GetFiltersId: function()
 	/*====================================================
 		- returns an array containing filters ids
@@ -5208,10 +5212,10 @@ TF.prototype = {
 		if( !this.hasGrid ) return;
 		return this.fltIds;
 	},
-	
+
 	GetValidRowsIndex: function(reCalc)
 	/*====================================================
-		- returns an array containing valid rows indexes 
+		- returns an array containing valid rows indexes
 		(valid rows upon filtering)
 	=====================================================*/
 	{
@@ -5221,26 +5225,26 @@ TF.prototype = {
 		for(var k=this.refRow; k<this.GetRowsNb(true); k++){
 			var r = this.tbl.rows[k];
 			if(!this.paging){
-				if(this.GetRowDisplay(r) != 'none') 
+				if(this.GetRowDisplay(r) != 'none')
 					this.validRowsIndex.push(r.rowIndex);
 			} else {
 				if(r.getAttribute('validRow') == 'true' || r.getAttribute('validRow') == null)
 					this.validRowsIndex.push(r.rowIndex);
-			} 
+			}
 		}
 		return this.validRowsIndex;
 	},
 
 	GetFiltersRowIndex: function()
 	/*====================================================
-		- Returns the index of the row containing the 
+		- Returns the index of the row containing the
 		filters
 	=====================================================*/
 	{
 		if( !this.hasGrid ) return;
 		return this.filtersRowIndex;
 	},
-	
+
 	GetHeadersRowIndex: function()
 	/*====================================================
 		- Returns the index of the headers row
@@ -5249,17 +5253,17 @@ TF.prototype = {
 		if( !this.hasGrid ) return;
 		return this.headersRow;
 	},
-	
+
 	GetStartRowIndex: function()
 	/*====================================================
-		- Returns the index of the row from which will 
+		- Returns the index of the row from which will
 		start the filtering process (1st filterable row)
 	=====================================================*/
 	{
 		if( !this.hasGrid ) return;
 		return this.refRow;
 	},
-	
+
 	GetLastRowIndex: function()
 	/*====================================================
 		- Returns the index of the last row
@@ -5268,7 +5272,7 @@ TF.prototype = {
 		if( !this.hasGrid ) return;
 		return (this.nbRows-1);
 	},
-	
+
 	GetHeaderElement: function(colIndex)
 	/*====================================================
 		- returns a header DOM element for a given column
@@ -5288,7 +5292,7 @@ TF.prototype = {
 		}
 		return header;
 	},
-	
+
 	GetConfigObject: function()
 	/*====================================================
 		- returns the original configuration object
@@ -5296,7 +5300,7 @@ TF.prototype = {
 	{
 		return this.fObj;
 	},
-	
+
 	GetFilterableRowsNb: function()
 	/*====================================================
 		- returns the total number of rows that can be
@@ -5375,7 +5379,7 @@ function tf_Tag(o,tagname)
 
 function tf_RegexpEscape(s)
 /*====================================================
-	- escapes special characters [\^$.|?*+() 
+	- escapes special characters [\^$.|?*+()
 	for regexp
 	- Many thanks to Cedric Wartel for this fn
 =====================================================*/
@@ -5405,7 +5409,7 @@ function tf_CreateElm(tag)
 =====================================================*/
 {
 	if(tag==undefined || tag==null || tag=='') return;
-	var el = document.createElement(tag);		
+	var el = document.createElement(tag);
 	if(arguments.length>1)
 	{
 		for(var i=0; i<arguments.length; i++)
@@ -5415,14 +5419,14 @@ function tf_CreateElm(tag)
 			{
 				case 'object':
 					if(arguments[i].length==2)
-					{						
+					{
 						el.setAttribute(arguments[i][0],arguments[i][1]);
 					}//if array length==2
 				break;
 			}//switch
 		}//for i
 	}//if args
-	return el;	
+	return el;
 }
 
 function tf_CreateText(node)
@@ -5442,7 +5446,7 @@ function tf_CreateOpt(text,value,isSel)
 =====================================================*/
 {
 	var isSelected = isSel ? true : false;
-	var opt = (isSelected) 
+	var opt = (isSelected)
 		? tf_CreateElm('option',['value',value],['selected','true'])
 		: tf_CreateElm('option',['value',value]);
 	opt.appendChild(tf_CreateText(text));
@@ -5632,7 +5636,7 @@ function tf_FormatDate(dateStr, format){
 	if(format === null){ format = 'DMY'; }
 	if(!dateStr || dateStr === ''){ return new Date(1001, 0, 1); }
 	var oDate, parts;
-	
+
 	function y2kDate(yr){
 		if(yr == undefined) return 0;
 		if(yr.length>2) return yr;
@@ -5758,7 +5762,7 @@ function tf_ReadCookie(name){
 	{
 		offset = document.cookie.indexOf(search);
 		if(offset != -1)
-		{ 
+		{
 			offset += search.length;
 			end = document.cookie.indexOf(';', offset);
 			if(end == -1) end = document.cookie.length;
@@ -5770,7 +5774,7 @@ function tf_ReadCookie(name){
 
 function tf_CookieValueArray(name, separator){
 	if(separator==undefined) separator = ',';
-	var val = tf_ReadCookie(name); //reads the cookie 
+	var val = tf_ReadCookie(name); //reads the cookie
 	var arr = val.split(separator); //creates an array with filters' values
 	return arr;
 }
@@ -5844,13 +5848,13 @@ function tf_UnhighlightWord( o,word,cssClass )
 		var n = o.highlightedNodes[i];
 		if(!n){ continue; }
 		var tempNodeVal = n.nodeValue.tf_LCase();
-		var tempWordVal = word.tf_LCase();	
+		var tempWordVal = word.tf_LCase();
 		if(tempNodeVal.indexOf(tempWordVal) != -1){
 			var pn = n.parentNode;
 			if(pn && pn.className == cssClass){
 				var prevSib = pn.previousSibling;
 				var nextSib = pn.nextSibling;
-				if(!prevSib || !nextSib){ continue; } 
+				if(!prevSib || !nextSib){ continue; }
 				nextSib.nodeValue = prevSib.nodeValue + n.nodeValue + nextSib.nodeValue;
 				prevSib.nodeValue = '';
 				n.nodeValue = '';
@@ -5902,7 +5906,7 @@ function setFilterGrid(id)
 	- Params:
 			- id: table id (string)
 			- refRow (optional): row index (number)
-			- config (optional): configuration 
+			- config (optional): configuration
 			object (literal object)
 	- Returns TF object
 =====================================================*/
@@ -5914,9 +5918,9 @@ function setFilterGrid(id)
 }
 
 /*===BEGIN removable section===========================
-	- Unobtrusive grid bar generation using 
+	- Unobtrusive grid bar generation using
 	'filterable' class
-	- If you don't use it you can remove safely this 
+	- If you don't use it you can remove safely this
 	section
 /*=====================================================*/
 window['tf_isNotIE'] = !(/msie|MSIE/.test(navigator.userAgent));

@@ -25,7 +25,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------------
 	- Special credit to:
-	Cedric Wartel, cnx.claude@free.fr, Florent Hirchy, V�ry P�ter,
+	Cedric Wartel, cnx.claude@free.fr, Florent Hirchy, Váry Péter,
 	Anthony Maes, Nuovella Williams, Fuggerbit, Venkata Seshagiri Rao
 	Raya, Piepiax, Manuel Kern, Baladhandayutham for active contribution
 	and/or inspiration

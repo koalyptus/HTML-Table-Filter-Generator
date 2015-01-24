@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------
-	- HTML Table Filter Generator v2.5
+	- HTML Table Filter Generator v2.5.1
 	- By Max Guglielmi (tablefilter.free.fr)
 	- Licensed under the MIT License
 --------------------------------------------------------------------------
@@ -24,10 +24,10 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------------
-	- Special credit to: 
-	Cedric Wartel, cnx.claude@free.fr, Florent Hirchy, V�ry P�ter, 
-	Anthony Maes, Nuovella Williams, Fuggerbit, Venkata Seshagiri Rao 
-	Raya, Piepiax, Manuel Kern, Baladhandayutham for active contribution 
+	- Special credit to:
+	Cedric Wartel, cnx.claude@free.fr, Florent Hirchy, V�ry P�ter,
+	Anthony Maes, Nuovella Williams, Fuggerbit, Venkata Seshagiri Rao
+	Raya, Piepiax, Manuel Kern, Baladhandayutham for active contribution
 	and/or inspiration
 ------------------------------------------------------------------------*/
 
@@ -37,13 +37,13 @@ var TF = function(id)
 	- Params:
 			- id: table id (string)
 			- refRow (optional): row index (number)
-			- config (optional): configuration 
+			- config (optional): configuration
 			object (literal object)
 =====================================================*/
 {
 	if(arguments.length === 0){ return; }
 	this.id = id;
-	this.version = '2.5';
+	this.version = '2.5.1';
 	this.year = (new Date()).getFullYear();
 	this.tbl = tf_Id(id);
 	this.startRow = undefined;
@@ -71,19 +71,19 @@ var TF = function(id)
                     case 'object':
                         this.fObj = arguments[i];
                     break;
-                }//switch                           
+                }//switch
             }//for
         }//if
-		
+
 		var f = !this.fObj ? {} : this.fObj;
-		
+
 		//Start row et cols nb
 		this.refRow = this.startRow==undefined ? 2 : (this.startRow+1);
 		try{ this.nbCells = this.GetCellsNb(this.refRow) }
 		catch(e){ this.nbCells = this.GetCellsNb(0) }
-		
+
 		this.basePath = f.base_path!=undefined ? f.base_path : 'TableFilter/'; //default script base path
-		
+
 		if(this.enableModules){
 			/*** Modules: features of the script ***/
 			this.registeredModules = []; //modules to be loaded
@@ -91,91 +91,91 @@ var TF = function(id)
 			this.importedModules = []; //modules imported by the TF script
 			this.modulesPath = f.modules_path!=undefined ? f.modules_path : this.basePath+'TF_Modules/'; //js modules files path
 			this.module = {
-				populateSelect:{ name:'populateSelect', desc:'Builds select type filters', 
+				populateSelect:{ name:'populateSelect', desc:'Builds select type filters',
 					path: this.modulesPath + 'tf_populateSelect.js', loaded:0,
-					init: function(o) { o.module.populateSelect.loaded = 1; }			
+					init: function(o) { o.module.populateSelect.loaded = 1; }
 				},
-				populateCheckList:{ name:'populateCheckList', desc:'Builds checklist type filters', 
+				populateCheckList:{ name:'populateCheckList', desc:'Builds checklist type filters',
 					path: this.modulesPath + 'tf_populateCheckList.js', loaded:0,
 					init: function(o) { o.module.populateCheckList.loaded = 1; }
 				},
-				gridLayout: { name:'gridLayout', desc:'Grid layout feature', 
+				gridLayout: { name:'gridLayout', desc:'Grid layout feature',
 					path: this.modulesPath + 'tf_gridLayout.js', loaded:0,
 					init: function(o) { o.module.gridLayout.loaded = 1; }
 				},
-				paging: { name:'paging', desc:'Paging feature', 
-					path: this.modulesPath + 'tf_paging.js', loaded:0, 
+				paging: { name:'paging', desc:'Paging feature',
+					path: this.modulesPath + 'tf_paging.js', loaded:0,
 					init: function(o) { o.module.paging.loaded = 1; }
 				},
-				sort: { name:'sort', desc:'Sort feature', 
-					path: this.modulesPath + 'tf_sort.js', loaded:0, 
+				sort: { name:'sort', desc:'Sort feature',
+					path: this.modulesPath + 'tf_sort.js', loaded:0,
 					init: function(o) { o.module.sort.loaded = 1; }
 				},
-				popUpFilters: { name:'popUpFilters', desc:'Filters in pop-up container feature', 
+				popUpFilters: { name:'popUpFilters', desc:'Filters in pop-up container feature',
 					path: this.modulesPath + 'tf_popupFilters.js', loaded:0,
 					init: function(o) { o.module.popUpFilters.loaded = 1; }
 				},
-				themes: { name:'themes', desc:'Themes loading feature', 
-					path: this.modulesPath + 'tf_themes.js', loaded:0, 
+				themes: { name:'themes', desc:'Themes loading feature',
+					path: this.modulesPath + 'tf_themes.js', loaded:0,
 					init: function(o) { o.module.themes.loaded = 1; }
 				},
-				colOps: { name:'colOps', desc:'Columns operations feature', 
-					path:this.modulesPath + 'tf_colOps.js', loaded:0, 
+				colOps: { name:'colOps', desc:'Columns operations feature',
+					path:this.modulesPath + 'tf_colOps.js', loaded:0,
 					init: function(o){ o.module.colOps.loaded = 1; }
 				},
-				fixedHeaders: {	name:'fixedHeaders', desc:'Fixed headers feature - Deprecated', 
-					path:this.modulesPath + 'tf_fixedHeaders.js', loaded:0, 
+				fixedHeaders: {	name:'fixedHeaders', desc:'Fixed headers feature - Deprecated',
+					path:this.modulesPath + 'tf_fixedHeaders.js', loaded:0,
 					init: function(o){ o.module.fixedHeaders.loaded = 1; }
 				},
-				rowsCounter: { name:'rowsCounter', desc:'Rows counter feature', 
-					path:this.modulesPath + 'tf_rowsCounter.js', loaded:0, 
+				rowsCounter: { name:'rowsCounter', desc:'Rows counter feature',
+					path:this.modulesPath + 'tf_rowsCounter.js', loaded:0,
 					init: function(o){ o.module.rowsCounter.loaded = 1; }
-				},			
-				loader: { name:'loader', desc:'Loader feature', 
+				},
+				loader: { name:'loader', desc:'Loader feature',
 					path:this.modulesPath + 'tf_loader.js', loaded:0,
 					init: function(o){ o.module.loader.loaded = 1; }
 				},
-				statusBar: { name:'statusBar', desc:'Status bar feature', 
-					path:this.modulesPath + 'tf_statusBar.js', loaded:0, 
+				statusBar: { name:'statusBar', desc:'Status bar feature',
+					path:this.modulesPath + 'tf_statusBar.js', loaded:0,
 					init: function(o){ o.module.statusBar.loaded = 1; }
 				},
-				resetBtn:{ name:'resetBtn', desc:'Reset button feature', 
-					path:this.modulesPath + 'tf_resetBtn.js', loaded:0, 
+				resetBtn:{ name:'resetBtn', desc:'Reset button feature',
+					path:this.modulesPath + 'tf_resetBtn.js', loaded:0,
 					init: function(o){ o.module.resetBtn.loaded = 1; }
 				},
-				helpInstructions:{ name:'helpInstructions', desc:'Help, About', 
-					path:this.modulesPath + 'tf_resetBtn.js', loaded:0, 
+				helpInstructions:{ name:'helpInstructions', desc:'Help, About',
+					path:this.modulesPath + 'tf_resetBtn.js', loaded:0,
 					init: function(o){ o.module.helpInstructions.loaded = 1; }
 				},
-				alternateRows:{ name:'alternateRows', desc:'Alternating rows color feature', 
+				alternateRows:{ name:'alternateRows', desc:'Alternating rows color feature',
 					path:this.modulesPath + 'tf_alternateRows.js', loaded:0,
 					init: function(o){ o.module.alternateRows.loaded = 1; }
 				},
-				cookies:{ name:'cookies', desc:'Remember values feature (cookies)', 
+				cookies:{ name:'cookies', desc:'Remember values feature (cookies)',
 					path:this.modulesPath + 'tf_cookies.js', loaded:0,
 					init: function(o){ o.module.cookies.loaded = 1; }
 				},
-				highlightKeywords:{	name:'highlightKeywords', desc:'Remember values feature (cookies)', 
+				highlightKeywords:{	name:'highlightKeywords', desc:'Remember values feature (cookies)',
 					path:this.modulesPath + 'tf_highlightKeywords.js', loaded:0,
 					init: function(o){ o.module.highlightKeywords.loaded = 1; }
 				},
-				refreshFilters:{ name:'refreshFilters', desc:'Refresh filters feature', 
-					path:this.modulesPath + 'tf_refreshFilters.js', loaded:0, 
+				refreshFilters:{ name:'refreshFilters', desc:'Refresh filters feature',
+					path:this.modulesPath + 'tf_refreshFilters.js', loaded:0,
 					init: function(o){ o.module.refreshFilters.loaded = 1; }
 				},
-				extensions:{ name:'extensions', desc:'Extensions loading feature', 
+				extensions:{ name:'extensions', desc:'Extensions loading feature',
 					path:this.modulesPath + 'tf_extensions.js', loaded:0,
 					init: function(o){ o.module.extensions.loaded = 1; }
 				},
-				watermark:{ name:'watermark', desc:'Watermark feature', 
+				watermark:{ name:'watermark', desc:'Watermark feature',
 					path:this.modulesPath + 'tf_watermark.js', loaded:0,
 					init: function(o){ o.module.watermark.loaded = 1; }
 				},
-				ezEditTable:{ name:'ezEditTable', desc:'ezEditTable adapter', 
+				ezEditTable:{ name:'ezEditTable', desc:'ezEditTable adapter',
 					path:this.modulesPath + 'tf_ezEditTable.js', loaded:0,
 					init: function(o){ o.module.ezEditTable.loaded = 1; }
 				},
-				publicMethods:{ name:'publicMethods', desc:'Additional public methods for developers', 
+				publicMethods:{ name:'publicMethods', desc:'Additional public methods for developers',
 					path:this.modulesPath + 'tf_publicMethods.js', loaded:0,
 					init: function(o){ o.module.publicMethods.loaded = 1; }
 				}
@@ -188,39 +188,39 @@ var TF = function(id)
 		this.fltTypeCheckList =		'checklist';
 		this.fltTypeNone =			'none';
 		this.fltCol = 				[]; //filter type of each column
-		
+
 		for(var i=0; i<this.nbCells; i++){
 			if(this['col'+i]==undefined)
-				this['col'+i] = (f['col_'+i]==undefined) 
+				this['col'+i] = (f['col_'+i]==undefined)
 					? this.fltTypeInp : f['col_'+i].tf_LCase();
 			this.fltCol.push(this['col'+i]);
 		}
-		
+
 		if(this.enableModules){
 			//Registers select and checklist scripts if needed
-			if(this.fltCol.tf_Has(this.fltTypeSlc) || 
-				this.fltCol.tf_Has(this.fltTypeMulti)) 
+			if(this.fltCol.tf_Has(this.fltTypeSlc) ||
+				this.fltCol.tf_Has(this.fltTypeMulti))
 				this.registeredModules.push(this.module.populateSelect.name);
 			if(this.fltCol.tf_Has(this.fltTypeCheckList)) this.registeredModules.push(this.module.populateCheckList.name);
 		}
-		
+
 		/*** Developer additional methods ***/
 		this.publicMethods = f.public_methods!=undefined ? f.public_methods : false;
-		
+
 		/*** filters' grid properties ***/
 		this.fltGrid = 				f.grid==false ? false : true; //enables/disables filter grid
-		
+
 		/*** Grid layout ***/
-		this.gridLayout = 			f.grid_layout ? true : false; //enables/disables grid layout (fixed headers)		
+		this.gridLayout = 			f.grid_layout ? true : false; //enables/disables grid layout (fixed headers)
 		this.hasGridWidthsRow =		false; //flag indicating if the grid has an additional row for column widths (IE<=7)
 		this.gridColElms =			[];
 		this.sourceTblHtml =		null;
 		if(this.gridLayout){
 			if(this.tbl.outerHTML==undefined) tf_SetOuterHtml();  //Firefox does not support outerHTML property...
 			this.sourceTblHtml = 		this.tbl.outerHTML; //original table html
-		}												
+		}
 		/*** ***/
-								
+
 		this.filtersRowIndex =		f.filters_row_index!=undefined ? f.filters_row_index : 0;
 		this.headersRow =			f.headers_row_index!=undefined ? f.headers_row_index : (this.filtersRowIndex==0 ? 1 : 0);
 		if(this.gridLayout){
@@ -228,14 +228,14 @@ var TF = function(id)
 			else{ this.filtersRowIndex = 1; this.headersRow = 0; }
 		}
 		this.fltCellTag =			f.filters_cell_tag!=undefined //defines tag of the cells containing filters (td/th)
-										? (f.filters_cell_tag!='th' ? 'td' : 'th') : 'td';		
+										? (f.filters_cell_tag!='th' ? 'td' : 'th') : 'td';
 		this.fltIds = 				[]; //stores filters ids
 		this.fltElms =				[]; //stores filters DOM elements
 		this.searchArgs =			null; //stores filters values
 		this.tblData =				[]; //stores table data
 		this.validRowsIndex =		null; //stores valid rows indexes (rows visible upon filtering)
 		this.fltGridEl =			null; //stores filters row element
-		this.isFirstLoad =			true; //is first load boolean 
+		this.isFirstLoad =			true; //is first load boolean
 		this.infDiv =				null; //container div for paging elements, reset btn etc.
 		this.lDiv =					null; //div for rows counter
 		this.rDiv =					null; //div for reset button and results per page select
@@ -243,21 +243,21 @@ var TF = function(id)
 		this.contDiv =				null; //table container div for fixed headers (IE only)
 		this.infDivCssClass =		f.inf_div_css_class!=undefined	//defines css class for div containing
 										? f.inf_div_css_class : 'inf'; //paging elements, rows counter etc.
-		this.lDivCssClass =			f.left_div_css_class!=undefined	//defines css class for left div 
+		this.lDivCssClass =			f.left_div_css_class!=undefined	//defines css class for left div
 										? f.left_div_css_class : 'ldiv';
-		this.rDivCssClass =			f.right_div_css_class!=undefined //defines css class for right div 
+		this.rDivCssClass =			f.right_div_css_class!=undefined //defines css class for right div
 										? f.right_div_css_class : 'rdiv';
-		this.mDivCssClass =			f.middle_div_css_class!=undefined //defines css class for mid div 
+		this.mDivCssClass =			f.middle_div_css_class!=undefined //defines css class for mid div
 										? f.middle_div_css_class : 'mdiv';
-		this.contDivCssClass =		f.content_div_css_class!=undefined 
+		this.contDivCssClass =		f.content_div_css_class!=undefined
 										? f.content_div_css_class : 'cont';	//table container div css class
-		
+
 		/*** filters' grid appearance ***/
 		this.stylesheet =   		f.stylesheet!=undefined ? f.stylesheet : this.basePath+'filtergrid.css'; //stylesheet file
 		this.stylesheetId =			this.id + '_style';
 		this.fltsRowCssClass =		f.flts_row_css_class!=undefined //defines css class for filters row
 										? f.flts_row_css_class : 'fltrow';
-		this.enableIcons =			f.enable_icons!=undefined ? f.enable_icons : true; //enables/disables icons (paging, reset button)		
+		this.enableIcons =			f.enable_icons!=undefined ? f.enable_icons : true; //enables/disables icons (paging, reset button)
 		this.alternateBgs =			f.alternate_rows ? true : false; //enables/disbles rows alternating bg colors
 		this.hasColWidth =			f.col_width ? true : false; //defines widths of columns
 		this.colWidth =				this.hasColWidth ? f.col_width : null;
@@ -270,21 +270,21 @@ var TF = function(id)
 		this.fltSmallCssClass =		f.flt_small_css_class!=undefined //defines css class for filters
 										? f.flt_small_css_class : 'flt_s';
 		this.singleFltCssClass =	f.single_flt_css_class!=undefined //defines css class for single-filter
-										? f.single_flt_css_class : 'single_flt';	
+										? f.single_flt_css_class : 'single_flt';
 		this.isStartBgAlternate =	true;
 		this.rowBgEvenCssClass =	f.even_row_css_class!=undefined //defines css class for even rows
 										? f.even_row_css_class :'even';
 		this.rowBgOddCssClass =		f.odd_row_css_class!=undefined //defines css class for odd rows
 										? f.odd_row_css_class :'odd';
-		
+
 		/*** filters' grid behaviours ***/
 		this.enterKey =				f.enter_key==false ? false : true; //enables/disables enter key
-		this.isModFilterFn = 		f.mod_filter_fn ? true : false; //enables/disables alternative fn call		
+		this.isModFilterFn = 		f.mod_filter_fn ? true : false; //enables/disables alternative fn call
 		this.modFilterFn =			this.isModFilterFn ? f.mod_filter_fn : null;// used by tf_DetectKey fn
 		this.onBeforeFilter =		tf_IsFn(f.on_before_filter) //calls function before filtering starts
 										? f.on_before_filter : null;
 		this.onAfterFilter =		tf_IsFn(f.on_after_filter) //calls function after filtering
-										? f.on_after_filter : null;								
+										? f.on_after_filter : null;
 		this.matchCase =			f.match_case ? true : false; //enables/disables case sensitivity
 		this.exactMatch =			f.exact_match ? true : false; //enables/disbles exact match for search
 		this.refreshFilters =		f.refresh_filters ? true : false; //refreshes drop-down lists upon validation
@@ -300,7 +300,7 @@ var TF = function(id)
 		this.isExternalFlt =		f.external_flt_grid ? true : false; //enables/disables external filters generation
 		this.externalFltTgtIds =	f.external_flt_grid_ids!=undefined //array containing ids of external elements containing filters
 										? f.external_flt_grid_ids : null;
-		this.externalFltEls =		[]; //stores filters elements if isExternalFlt is true		
+		this.externalFltEls =		[]; //stores filters elements if isExternalFlt is true
 		this.execDelay =			f.exec_delay ? parseInt(f.exec_delay) : 100; //delays filtering process if loader true
 		this.status =				f.status ? true : false; //enables/disables status messages
 		this.onFiltersLoaded =		tf_IsFn(f.on_filters_loaded) //calls function when filters grid loaded
@@ -308,7 +308,7 @@ var TF = function(id)
 		this.singleSearchFlt =		f.single_search_filter ? true : false; //enables/disables single filter search
 		this.onRowValidated =		tf_IsFn(f.on_row_validated) //calls function after row is validated
 									 	? f.on_row_validated : null;
-		this.customCellDataCols =	f.custom_cell_data_cols ? f.custom_cell_data_cols : []; //array defining columns for customCellData event 	
+		this.customCellDataCols =	f.custom_cell_data_cols ? f.custom_cell_data_cols : []; //array defining columns for customCellData event
 		this.customCellData =		tf_IsFn(f.custom_cell_data) //calls custom function for retrieving cell data
 									 	? f.custom_cell_data : null;
 		this.inpWatermark = 		f.input_watermark!=undefined ? f.input_watermark : ''; //input watermark text array
@@ -327,7 +327,7 @@ var TF = function(id)
 										? f.on_before_active_column : null;
 		this.onAfterActiveColumn = tf_IsFn(f.on_after_active_column) //calls function after active column header is marked
 										? f.on_after_active_column : null;
-		
+
 		/*** selects customisation and behaviours ***/
 		this.displayAllText =		f.display_all_text!=undefined ? f.display_all_text : ''; //defines 1st option text
 		this.enableSlcResetFilter = f.enable_slc_reset_filter!=undefined ? f.enable_slc_reset_filter : true;
@@ -335,48 +335,48 @@ var TF = function(id)
 		this.emptyText =			f.empty_text!=undefined ? f.empty_text : '(Empty)'; //defines empty option text
 		this.enableNonEmptyOption =	f.enable_non_empty_option ? true : false; //enables/disables non empty option in combo-box filters
 		this.nonEmptyText =			f.non_empty_text!=undefined ? f.non_empty_text : '(Non empty)'; //defines empty option text
-		this.onSlcChange = 			f.on_change==false ? false : true; //enables/disables onChange event on combo-box 
+		this.onSlcChange = 			f.on_change==false ? false : true; //enables/disables onChange event on combo-box
 		this.sortSlc =				f.sort_select==false ? false : true; //enables/disables select options sorting
 		this.isSortNumAsc =			f.sort_num_asc ? true : false; //enables/disables ascending numeric options sorting
 		this.sortNumAsc =			this.isSortNumAsc ? f.sort_num_asc : null;
 		this.isSortNumDesc =		f.sort_num_desc ? true : false; //enables/disables descending numeric options sorting
 		this.sortNumDesc =			this.isSortNumDesc ? f.sort_num_desc : null;
-		this.slcFillingMethod =		f.slc_filling_method!=undefined //sets select filling method: 'innerHTML' or 
+		this.slcFillingMethod =		f.slc_filling_method!=undefined //sets select filling method: 'innerHTML' or
 										? f.slc_filling_method : 'createElement';	//'createElement'
 		this.fillSlcOnDemand =		f.fill_slc_on_demand ? true : false; //enabled selects are populated on demand
-		this.activateSlcTooltip =	f.activate_slc_tooltip!=undefined //IE only, tooltip text appearing on select 
+		this.activateSlcTooltip =	f.activate_slc_tooltip!=undefined //IE only, tooltip text appearing on select
 										? f.activate_slc_tooltip : 'Click to activate'; // before it is populated
-		this.multipleSlcTooltip =	f.multiple_slc_tooltip!=undefined //tooltip text appearing on multiple select 
+		this.multipleSlcTooltip =	f.multiple_slc_tooltip!=undefined //tooltip text appearing on multiple select
 										? f.multiple_slc_tooltip : 'Use Ctrl key for multiple selections';
 		this.hasCustomSlcOptions =	f.custom_slc_options && tf_IsObj(f.custom_slc_options)
-										? true : false;	
+										? true : false;
 		this.customSlcOptions =		f.custom_slc_options!=undefined
 										? f.custom_slc_options : null;
 		this.onBeforeOperation =	tf_IsFn(f.on_before_operation) //calls function before col operation
 										? f.on_before_operation : null;
 		this.onAfterOperation =		tf_IsFn(f.on_after_operation) //calls function after col operation
 										? f.on_after_operation : null;
-		
+
 		/*** checklist customisation and behaviours ***/
 		this.checkListDiv = 		[]; //checklist container div
-		this.checkListDivCssClass = f.div_checklist_css_class!=undefined 
+		this.checkListDivCssClass = f.div_checklist_css_class!=undefined
 										? f.div_checklist_css_class : 'div_checklist'; //defines css class for div containing checklist filter
 		this.checkListCssClass =	f.checklist_css_class!=undefined //defines css class for checklist filters
 										? f.checklist_css_class : 'flt_checklist';
 		this.checkListItemCssClass = f.checklist_item_css_class!=undefined //defines css class for checklist item (li)
 										? f.checklist_item_css_class : 'flt_checklist_item';
 		this.checkListSlcItemCssClass = f.checklist_selected_item_css_class!=undefined //defines css class for selected checklist item (li)
-										? f.checklist_selected_item_css_class : 'flt_checklist_slc_item';								
-		this.activateCheckListTxt =	f.activate_checklist_text!=undefined //Load on demand text 
+										? f.checklist_selected_item_css_class : 'flt_checklist_slc_item';
+		this.activateCheckListTxt =	f.activate_checklist_text!=undefined //Load on demand text
 										? f.activate_checklist_text : 'Click to load data';
 		this.checkListItemDisabledCssClass = f.checklist_item_disabled_css_class!=undefined //defines css class for checklist filters
 											? f.checklist_item_disabled_css_class : 'flt_checklist_item_disabled';
 		this.enableCheckListResetFilter = f.enable_checklist_reset_filter!=undefined ? f.enable_checklist_reset_filter : true;
-		
+
 		/*** Filter operators ***/
 		this.rgxOperator =			f.regexp_operator!=undefined ? f.regexp_operator : 'rgx:';
 		this.emOperator =			f.empty_operator!=undefined ? f.empty_operator : '[empty]';
-		this.nmOperator =			f.nonempty_operator!=undefined ? f.nonempty_operator : '[nonempty]';		
+		this.nmOperator =			f.nonempty_operator!=undefined ? f.nonempty_operator : '[nonempty]';
 		this.orOperator =			f.or_operator!=undefined ? f.or_operator : '||';
 		this.anOperator =			f.and_operator!=undefined ? f.and_operator : '&&';
 		this.grOperator = 			f.greater_operator!=undefined ? f.greater_operator : '>';
@@ -390,16 +390,16 @@ var TF = function(id)
 		this.enOperator =			f.end_with_operator!=undefined ? f.end_with_operator : '}';
 		this.curExp =				f.cur_exp!=undefined ? f.cur_exp : '^[���$]';
 		this.separator = 			f.separator!=undefined ? f.separator : ',';
-		
+
 		/*** rows counter ***/
-		this.rowsCounter = 			f.rows_counter ? true : false; //show/hides rows counter		
-		
+		this.rowsCounter = 			f.rows_counter ? true : false; //show/hides rows counter
+
 		/*** status bar ***/
-		this.statusBar =			f.status_bar ? f.status_bar : false; //show/hides status bar			
-		
+		this.statusBar =			f.status_bar ? f.status_bar : false; //show/hides status bar
+
 		/*** loader ***/
-		this.loader =				f.loader ? true : false; //enables/disables loader					
-		
+		this.loader =				f.loader ? true : false; //enables/disables loader
+
 		/*** validation - reset buttons/links ***/
 		this.displayBtn =			f.btn ? true : false; //show/hides filter's validation button
 		this.btnText =				f.btn_text!=undefined ? f.btn_text : (!this.enableIcons ? 'Go' : ''); //defines validation button text
@@ -409,9 +409,9 @@ var TF = function(id)
 									? f.btn_reset_css_class :'reset';
 		this.onBeforeReset = 		tf_IsFn(f.on_before_reset) ? f.on_before_reset : null; //callback function before filters are cleared
 		this.onAfterReset = 		tf_IsFn(f.on_after_reset) ? f.on_after_reset : null; //callback function after filters are cleared
-		
+
 		/*** paging ***/
-		this.paging =				f.paging ? true : false; //enables/disables table paging		
+		this.paging =				f.paging ? true : false; //enables/disables table paging
 		this.hasResultsPerPage =	f.results_per_page ? true : false; //enables/disables results per page drop-down
 		this.btnPageCssClass =		f.paging_btn_css_class!=undefined
 										? f.paging_btn_css_class :'pgInp'; //css class for paging buttons (previous,next,etc.)
@@ -424,7 +424,7 @@ var TF = function(id)
 		this.startPagingRow =		0; //1st row index of current page
 		this.nbPages = 				0; //total nb of pages
 		this.currentPageNb =		1; //current page nb
-		
+
 		/*** webfx sort adapter ***/
 		this.sort =					f.sort ? true : false; //enables/disables default table sorting
 		this.isSortEnabled =		false; //indicates if sort is set (used in tfAdapter.sortabletable.js)
@@ -437,42 +437,42 @@ var TF = function(id)
 		this.sortConfig.sortTypes =	this.sortConfig['sort_types']!=undefined ? f.sort_config.sort_types : [];
 		this.sortConfig.sortCol =	this.sortConfig['sort_col']!=undefined ? f.sort_config.sort_col : null;
 		this.sortConfig.asyncSort =	this.sortConfig['async_sort']!=undefined ? true : false;
-		this.sortConfig.triggerIds = this.sortConfig['sort_trigger_ids']!=undefined ? f.sort_config.sort_trigger_ids : [];									
-		
+		this.sortConfig.triggerIds = this.sortConfig['sort_trigger_ids']!=undefined ? f.sort_config.sort_trigger_ids : [];
+
 		/*** ezEditTable extension ***/
     	this.selectable =			f.selectable!=undefined ? f.selectable : false; //enables/disables table selection feature
 		this.editable =				f.editable!=undefined ? f.editable : false; //enables/disables editable table feature
-		    		
+
 		/*** onkeyup event ***/
 		this.onKeyUp =				f.on_keyup ? true : false; //enables/disables onkeyup event, table is filtered when user stops typing
 		this.onKeyUpDelay =			f.on_keyup_delay!=undefined ? f.on_keyup_delay : 900; //onkeyup delay timer (msecs)
 		this.isUserTyping = 		null; //typing indicator
-		this.onKeyUpTimer = 		undefined;		
-		
+		this.onKeyUpTimer = 		undefined;
+
 		/*** keyword highlighting ***/
 		this.highlightKeywords = 	f.highlight_keywords ? true : false; //enables/disables keyword highlighting
 		this.highlightCssClass =	f.highlight_css_class!=undefined ? f.highlight_css_class : 'keyword'; //defines css class for highlighting
 		this.highlightedNodes = 	[];
-		
+
 		/*** data types ***/
 		this.defaultDateType =		f.default_date_type!=undefined //defines default date type (european DMY)
 										? f.default_date_type : 'DMY';
-		this.thousandsSeparator =	f.thousands_separator!=undefined //defines default thousands separator 
+		this.thousandsSeparator =	f.thousands_separator!=undefined //defines default thousands separator
 										? f.thousands_separator : ','; //US = ',' EU = '.'
-		this.decimalSeparator = 	f.decimal_separator!=undefined //defines default decimal separator 
+		this.decimalSeparator = 	f.decimal_separator!=undefined //defines default decimal separator
 										? f.decimal_separator : '.'; //US & javascript = '.' EU = ','
 		this.hasColNbFormat = 		f.col_number_format ? true : false; //enables number format per column
 		this.colNbFormat = 			this.hasColNbFormat ? f.col_number_format : null; //array containing columns nb formats
 		this.hasColDateType = 		f.col_date_type ? true : false; //enables date type per column
 		this.colDateType =			this.hasColDateType ? f.col_date_type : null; //array containing columns date type
-		
+
 		/*** status messages ***/
 		this.msgFilter =			f.msg_filter!=undefined //filtering
-										? f.msg_filter : 'Filtering data...'; 
+										? f.msg_filter : 'Filtering data...';
 		this.msgPopulate =			f.msg_populate!=undefined //populating drop-downs
-										? f.msg_populate : 'Populating filter...'; 
+										? f.msg_populate : 'Populating filter...';
 		this.msgPopulateCheckList =	f.msg_populate_checklist!=undefined //populating drop-downs
-										? f.msg_populate_checklist : 'Populating list...'; 
+										? f.msg_populate_checklist : 'Populating list...';
 		this.msgChangePage =		f.msg_change_page!=undefined //changing paging page
 										? f.msg_change_page : 'Collecting paging data...';
 		this.msgClear =				f.msg_clear!=undefined //clearing filters
@@ -490,7 +490,7 @@ var TF = function(id)
 		this.msgLoadExtensions =	f.msg_load_extensions!=undefined //extensions loading
 										? f.msg_load_extensions : 'Loading extensions...';
 		this.msgLoadThemes =		f.msg_load_themes!=undefined //themes loading
-										? f.msg_load_themes : 'Loading theme(s)...';			
+										? f.msg_load_themes : 'Loading theme(s)...';
 
 		/*** ids prefixes ***/
 		this.prfxTf =				'TF'; //css class name added to table
@@ -504,7 +504,7 @@ var TF = function(id)
 		this.prfxCheckListDiv =		'chkdiv_'; //checklist filter container div
 		this.prfxSlcPages =			'slcPages_'; //pages select
 		this.prfxSlcResults = 		'slcResults_'; //results per page select
-		this.prfxSlcResultsTxt =	'slcResultsTxt_'; //label preciding results per page select	
+		this.prfxSlcResultsTxt =	'slcResultsTxt_'; //label preciding results per page select
 		this.prfxBtnNextSpan =		'btnNextSpan_'; //span containing next page button
 		this.prfxBtnPrevSpan =		'btnPrevSpan_'; //span containing previous page button
 		this.prfxBtnLastSpan =		'btnLastSpan_'; //span containing last page button
@@ -543,21 +543,21 @@ var TF = function(id)
 		this.rememberGridValues =	f.remember_grid_values ? true : false; //remembers filters values on page load
 		this.fltsValuesCookie =		this.prfxCookieFltsValues + this.id; //cookie storing filter values
 		this.rememberPageNb =		this.paging && f.remember_page_number
-										? true : false; //remembers page nb on page load	
+										? true : false; //remembers page nb on page load
 		this.pgNbCookie =			this.prfxCookiePageNb + this.id; //cookie storing page nb
 		this.rememberPageLen =		this.paging && f.remember_page_length
 										? true : false; //remembers page length on page load
 		this.pgLenCookie =			this.prfxCookiePageLen + this.id; //cookie storing page length
-		this.cookieDuration =		f.set_cookie_duration 
+		this.cookieDuration =		f.set_cookie_duration
 										? parseInt(f.set_cookie_duration) :100000; //cookie duration
-		
+
 		/*** extensions ***/
 		this.hasExtensions =		f.extensions ? true : false; //imports external script
 		this.extensions =			(this.hasExtensions) ? f.extensions : null;
-		
+
 		/*** themes ***/
-		this.enableDefaultTheme =	f.enable_default_theme ? true : false;	
-		this.hasThemes =			(f.enable_default_theme 
+		this.enableDefaultTheme =	f.enable_default_theme ? true : false;
+		this.hasThemes =			(f.enable_default_theme
 										|| (f.themes && tf_IsObj(f.themes))) ? true : false; //imports themes
 		this.themes =				(this.hasThemes) ? f.themes : null;
 		this.themesPath =			f.themes_path!=undefined ? f.themes_path : this.basePath+'TF_Themes/'; //themes path
@@ -565,7 +565,7 @@ var TF = function(id)
 		/***(deprecated: backward compatibility) ***/
 		this.hasBindScript =		f.bind_script ? true : false; //imports external script
 		this.bindScript =			(this.hasBindScript) ? f.bind_script : null;
-		
+
 		/*** TF events ***/
 		var o = this;
 		this.Evt = {
@@ -581,7 +581,7 @@ var TF = function(id)
 				resetpagelength: 'ResetPageLength',
 				sort: 'Sort',
 				loadextensions: 'LoadExtensions',
-				loadthemes: 'LoadThemes'			
+				loadthemes: 'LoadThemes'
 			},
 			_DetectKey: function(e)
 			/*====================================================
@@ -599,17 +599,17 @@ var TF = function(id)
 					{
 						o.Filter();
 						tf_CancelEvent(evt);
-						tf_StopEvent(evt);						
-					} else { 
+						tf_StopEvent(evt);
+					} else {
 						o.isUserTyping = true;
 						window.clearInterval(o.onKeyUpTimer);
-						o.onKeyUpTimer = undefined; 
+						o.onKeyUpTimer = undefined;
 					}
 				}//if evt
 			},
 			_OnKeyUp: function(e)
 			/*====================================================
-				- onkeyup event for text filters 
+				- onkeyup event for text filters
 				(onKeyUp property)
 			=====================================================*/
 			{
@@ -618,7 +618,7 @@ var TF = function(id)
 				var key=(evt.charCode)?evt.charCode:
 						((evt.keyCode)?evt.keyCode:((evt.which)?evt.which:0));
 				o.isUserTyping = false;
-				
+
 				if(key!=13 && key!=9 && key!=27 && key!=38 && key!=40)
 				{
 					function filter()
@@ -628,19 +628,19 @@ var TF = function(id)
 						if(!o.isUserTyping)
 						{
 							o.Filter();
-							o.isUserTyping = null;			
+							o.isUserTyping = null;
 						}
 					}
 					if(o.onKeyUpTimer==undefined)
 						o.onKeyUpTimer = window.setInterval(filter, o.onKeyUpDelay);
-				} else { 
-					window.clearInterval(o.onKeyUpTimer); 
-					o.onKeyUpTimer = undefined; 
+				} else {
+					window.clearInterval(o.onKeyUpTimer);
+					o.onKeyUpTimer = undefined;
 				}
 			},
 			_OnKeyDown: function(e)
 			/*====================================================
-				- onkeydown event for input filters 
+				- onkeydown event for input filters
 				(onKeyUp property)
 			=====================================================*/
 			{
@@ -653,12 +653,12 @@ var TF = function(id)
 			=====================================================*/
 			{
 				if(o.onKeyUp){
-					o.isUserTyping = false; 
+					o.isUserTyping = false;
 					window.clearInterval(o.onKeyUpTimer);
 				}
 				//Watermark
-				if(this.value == '' && o.inpWatermark != ''){ 
-					this.value = (o.isInpWatermarkArray) 
+				if(this.value == '' && o.inpWatermark != ''){
+					this.value = (o.isInpWatermarkArray)
 						? o.inpWatermark[this.getAttribute('ct')]  : o.inpWatermark;
 					tf_AddClass(this, o.inpWatermarkCssClass);
 				}
@@ -677,13 +677,13 @@ var TF = function(id)
 				o.activeFlt = tf_Id(o.activeFilterId);
 				//Watermark
 				if(!o.isInpWatermarkArray){
-					if(this.value == o.inpWatermark && o.inpWatermark != ''){					
-						this.value = ''; 
+					if(this.value == o.inpWatermark && o.inpWatermark != ''){
+						this.value = '';
 						tf_RemoveClass(this, o.inpWatermarkCssClass);
 					}
 				} else {
 					var inpWatermark = o.inpWatermark[this.getAttribute('ct')];
-					if(this.value == inpWatermark && inpWatermark != ''){ 
+					if(this.value == inpWatermark && inpWatermark != ''){
 						this.value = '';
 						tf_RemoveClass(this, o.inpWatermarkCssClass);
 					}
@@ -729,7 +729,7 @@ var TF = function(id)
 			/*====================================================
 				- onblur event for select filters
 			=====================================================*/
-			{	
+			{
 			},
 			_OnCheckListChange: function(e)
 			/*====================================================
@@ -763,7 +763,7 @@ var TF = function(id)
 			},
 			_OnBtnClick: function()
 			/*====================================================
-				- onclick event for validation button 
+				- onclick event for validation button
 				(btn property)
 			=====================================================*/
 			{
@@ -776,8 +776,8 @@ var TF = function(id)
 				IE only
 			=====================================================*/
 			{
-				this.firstChild.disabled = false;							
-				this.firstChild.focus();							
+				this.firstChild.disabled = false;
+				this.firstChild.focus();
 				this.onclick = null;
 			},
 			_Clear: function()
@@ -801,11 +801,11 @@ var TF = function(id)
 				firstEvt: null
 			}
 		};
-		
+
 		if(this.enableModules){
 			//Register modules to be imported
 			var m = this.module, rm = this.registeredModules;
-			if(this.loader || this.statusBar || this.status || this.hasThemes /*|| this.publicMethods*/) 
+			if(this.loader || this.statusBar || this.status || this.hasThemes /*|| this.publicMethods*/)
 				rm.push(m.loader.name);
 			if(this.hasThemes /*|| this.publicMethods*/) rm.push(m.themes.name);
 			if(this.paging /*|| this.publicMethods*/) rm.push(m.paging.name);
@@ -824,7 +824,7 @@ var TF = function(id)
 			if(this.refreshFilters /*|| this.publicMethods*/) rm.push(m.refreshFilters.name);
 			if(this.hasColOperation /*|| this.publicMethods*/) rm.push(m.colOps.name);
 			if(this.selectable || this.editable) rm.push(m.ezEditTable.name);
-			if(this.hasExtensions || this.gridLayout /*|| this.publicMethods*/){				
+			if(this.hasExtensions || this.gridLayout /*|| this.publicMethods*/){
 				rm.push(m.extensions.name);
 				if(!rm.tf_Has(m.populateCheckList.name, true)) rm.push(m.populateCheckList.name);
 			}
@@ -840,12 +840,12 @@ var TF = function(id)
 					this.alreadyImportedModules.push(module.name);
 				} else { this.ImportModule(module); this.importedModules.push(module.name) };
 			}
-		}		
-    }//if tbl!=null		
+		}
+    }//if tbl!=null
 }
 
 TF.prototype = {
-	
+
 	AddGrid: function()
 	{
 		if(this.enableModules){
@@ -864,15 +864,15 @@ TF.prototype = {
 				} else {
 					//Under IE script continues execution before dynamically imported scripts are fully loaded
 					function checkLoadedModules(){
-						var modulesFullyImported = true;						
+						var modulesFullyImported = true;
 						for(var i=0; i<o.registeredModules.length; i++){
 							var module = o.module[o.registeredModules[i]];
-							if(!module.loaded){ 
+							if(!module.loaded){
 								modulesFullyImported = false;
 								break;
 							}
 						}
-						if(modulesFullyImported){ 
+						if(modulesFullyImported){
 							clearInterval(pe);
 							o._AddGrid();
 						}
@@ -884,10 +884,10 @@ TF.prototype = {
 		} else this._AddGrid();
 	}, Init : function(){ this.AddGrid(); }, Initialize : function(){ this.AddGrid(); },
 	init : function(){ this.AddGrid(); }, initialize : function(){ this.AddGrid(); },
-	
+
 	_AddGrid: function()
 	/*====================================================
-		- adds row with filtering grid bar and sets grid 
+		- adds row with filtering grid bar and sets grid
 		behaviours and layout
 	=====================================================*/
 	{
@@ -901,7 +901,7 @@ TF.prototype = {
 		//loads stylesheet if not imported
 		//Issues with browsers != IE, IE rules in this case
 		this.IncludeFile(this.stylesheetId, this.stylesheet, null, 'link');
-		
+
 		//loads theme
 		if(this.hasThemes) this._LoadThemes();
 
@@ -912,21 +912,21 @@ TF.prototype = {
 			//Once grid generated 1st filterable row is 0 again
 			this.refRow = (tf_isIE || tf_isIE7) ? (this.refRow+1) : 0;
 		}
-				
+
 		if(this.loader) this.SetLoader();
-		
+
 		if(this.popUpFilters){ if(!this.isFirstLoad && !this.gridLayout){ this.headersRow--; } this.SetPopupFilterIcons(); }
-		
+
 		if(this.hasResultsPerPage)
-		{ 
-			this.resultsPerPage = f['results_per_page']!=undefined   
+		{
+			this.resultsPerPage = f['results_per_page']!=undefined
 				? f['results_per_page'] : this.resultsPerPage;
 			if(this.resultsPerPage.length<2)
 				this.hasResultsPerPage = false;
 			else
 				this.pagingLength = this.resultsPerPage[1][0];
 		}
-		
+
 		if(!this.fltGrid)
 		{//filters grid is not genetared
 			this.refRow = (this.refRow-1);
@@ -945,40 +945,40 @@ TF.prototype = {
 					else
 						fltrow = this.tbl.insertRow(this.filtersRowIndex);
 
-					if(this.headersRow>1 && this.filtersRowIndex <= this.headersRow && !this.popUpFilters) this.headersRow++;  
+					if(this.headersRow>1 && this.filtersRowIndex <= this.headersRow && !this.popUpFilters) this.headersRow++;
 					if(this.popUpFilters) this.headersRow++;
-					
+
 					if(this.fixedHeaders) this.SetFixedHeaders();
-					
+
 					fltrow.className = this.fltsRowCssClass;
 					//Disable for grid_layout
-					if(this.isExternalFlt && (!this.gridLayout || this.popUpFilters)) fltrow.style.display = 'none';				
+					if(this.isExternalFlt && (!this.gridLayout || this.popUpFilters)) fltrow.style.display = 'none';
 				}
-				
+
 				this.nbFilterableRows = this.GetRowsNb();
 				this.nbVisibleRows = this.nbFilterableRows;
 				this.nbRows = this.tbl.rows.length;
-				
+
 				for(var i=0; i<n; i++){// this loop adds filters
 					var fltcell = tf_CreateElm(this.fltCellTag);
 					if(this.singleSearchFlt) fltcell.colSpan = this.nbCells;
 					if(!this.gridLayout) fltrow.appendChild(fltcell);
 					inpclass = (i==n-1 && this.displayBtn) ? this.fltSmallCssClass : this.fltCssClass;
-					
+
 					if(this.popUpFilters) this.SetPopupFilter(i);
-					
+
 					if(this['col'+i]==undefined)
-						this['col'+i] = (f['col_'+i]==undefined) 
+						this['col'+i] = (f['col_'+i]==undefined)
 							? this.fltTypeInp : f['col_'+i].tf_LCase();
-							
+
 					if(this.singleSearchFlt)
 					{//only 1 input for single search
 						this['col'+i] = this.fltTypeInp;
 						inpclass = this.singleFltCssClass;
 					}
-	
+
 					if(this['col'+i]==this.fltTypeSlc || this['col'+i]==this.fltTypeMulti)
-					{//selects					
+					{//selects
 						var slc = tf_CreateElm(this.fltTypeSlc,
 							['id',this.prfxFlt+i+'_'+this.id],
 							['ct',i],['filled','0']);
@@ -987,9 +987,9 @@ TF.prototype = {
 							slc.multiple = this.fltTypeMulti;
 							slc.title = this.multipleSlcTooltip;
 						}
-						slc.className = (this['col'+i].tf_LCase()==this.fltTypeSlc) 
+						slc.className = (this['col'+i].tf_LCase()==this.fltTypeSlc)
 							? inpclass : this.fltMultiCssClass;// for ie<=6
-						
+
 						if(this.isExternalFlt && this.externalFltTgtIds && tf_Id(this.externalFltTgtIds[i]))
 						{//filter is appended in desired element
 							tf_Id(this.externalFltTgtIds[i]).appendChild(slc);
@@ -997,27 +997,27 @@ TF.prototype = {
 						} else {
 							fltcell.appendChild(slc);
 						}
-						
+
 						this.fltIds.push(this.prfxFlt+i+'_'+this.id);
-						
+
 						if(!this.fillSlcOnDemand) this._PopulateSelect(i);
-						
+
 						slc.onkeypress = this.Evt._DetectKey;
 						slc.onchange = this.Evt._OnSlcChange;
 						slc.onfocus = this.Evt._OnSlcFocus;
 						slc.onblur = this.Evt._OnSlcBlur;
-						
+
 						if(this.fillSlcOnDemand)
 						{//1st option is created here since PopulateSelect isn't invoked
 							var opt0 = tf_CreateOpt(this.displayAllText,'');
-							slc.appendChild(opt0);						
+							slc.appendChild(opt0);
 						}
-						
+
 						/* 	Code below for IE: it prevents select options to
 							slide out before select it-self is populated.
 							This is an unexpeted behavior for users since at
-							1st click options are empty. Work around: 
-							select is disabled and by clicking on element 
+							1st click options are empty. Work around:
+							select is disabled and by clicking on element
 							(parent td), users enable drop-down and select is
 							populated at same time.  */
 						if(this.fillSlcOnDemand && tf_isIE)
@@ -1029,14 +1029,14 @@ TF.prototype = {
 								this.__deferMultipleSelection(slc,0);
 						}
 					}
-					
+
 					else if(this['col'+i]==this.fltTypeCheckList)
 					{// checklist
 						var divCont = tf_CreateElm('div',
 										['id',this.prfxCheckListDiv+i+'_'+this.id],
 										['ct',i],['filled','0']);
 						divCont.className = this.checkListDivCssClass;
-						
+
 						if(this.isExternalFlt && this.externalFltTgtIds
 							&& tf_Id(this.externalFltTgtIds[i]))
 						{//filter is appended in desired element
@@ -1045,31 +1045,31 @@ TF.prototype = {
 						} else {
 							fltcell.appendChild(divCont);
 						}
-						
+
 						this.checkListDiv[i] = divCont;
 						this.fltIds.push(this.prfxFlt+i+'_'+this.id);
 						if(!this.fillSlcOnDemand) this._PopulateCheckList(i);
-						
+
 						divCont.onclick = this.Evt._OnCheckListFocus;
-						
+
 						if(this.fillSlcOnDemand)
 						{
 							divCont.onclick = this.Evt._OnCheckListClick;
 							divCont.appendChild(tf_CreateText(this.activateCheckListTxt));
 						}
 					}
-					
+
 					else
 					{
 						var inptype;
-						(this['col'+i]==this.fltTypeInp) ? inptype='text' : inptype='hidden';//show/hide input	
-						var inp = tf_CreateElm(this.fltTypeInp,['id',this.prfxFlt+i+'_'+this.id],['type',inptype],['ct',i]);	
+						(this['col'+i]==this.fltTypeInp) ? inptype='text' : inptype='hidden';//show/hide input
+						var inp = tf_CreateElm(this.fltTypeInp,['id',this.prfxFlt+i+'_'+this.id],['type',inptype],['ct',i]);
 						if(inptype!='hidden')
-							inp.value = (this.isInpWatermarkArray) ? this.inpWatermark[i] : this.inpWatermark;					
+							inp.value = (this.isInpWatermarkArray) ? this.inpWatermark[i] : this.inpWatermark;
 						inp.className = inpclass;// for ie<=6
 						if(this.inpWatermark!='') tf_AddClass(inp, this.inpWatermarkCssClass); //watermark css class
 						inp.onfocus = this.Evt._OnInpFocus;
-						
+
 						if(this.isExternalFlt && this.externalFltTgtIds && tf_Id(this.externalFltTgtIds[i]))
 						{//filter is appended in desired element
 							tf_Id(this.externalFltTgtIds[i]).appendChild(inp);
@@ -1077,47 +1077,47 @@ TF.prototype = {
 						} else {
 							fltcell.appendChild(inp);
 						}
-						
+
 						this.fltIds.push(this.prfxFlt+i+'_'+this.id);
-						
+
 						inp.onkeypress = this.Evt._DetectKey;
 						inp.onkeydown = this.Evt._OnKeyDown;
 						inp.onkeyup = this.Evt._OnKeyUp;
 						inp.onblur = this.Evt._OnInpBlur;
-						
+
 						if(this.rememberGridValues)
 						{
 							var flts = tf_ReadCookie(this.fltsValuesCookie); //reads the cookie
 							var reg = new RegExp(this.separator,'g');
 							var flts_values = flts.split(reg); //creates an array with filters' values
 							if(flts_values[i]!=' ')
-								this.SetFilterValue(i,flts_values[i],false);					
+								this.SetFilterValue(i,flts_values[i],false);
 						}
 					}
-					
+
 					if(i==n-1 && this.displayBtn)// this adds validation button
 					{
 						var btn = tf_CreateElm(this.fltTypeInp,['id',this.prfxValButton+i+'_'+this.id],
 												['type','button'], ['value',this.btnText]);
 						btn.className = this.btnCssClass;
-						
-						if(this.isExternalFlt && this.externalFltTgtIds && tf_Id(this.externalFltTgtIds[i])) 
+
+						if(this.isExternalFlt && this.externalFltTgtIds && tf_Id(this.externalFltTgtIds[i]))
 						//filter is appended in desired element
 							tf_Id(this.externalFltTgtIds[i]).appendChild(btn);
 						else
 							fltcell.appendChild(btn);
-						
-						btn.onclick = this.Evt._OnBtnClick;				
+
+						btn.onclick = this.Evt._OnBtnClick;
 					}//if
-					
+
 				}// for i
-				
+
 			} else {
-				this.__resetGrid();			
+				this.__resetGrid();
 			}//if isFirstLoad
 		}//if this.fltGrid
-		
-		/* Filter behaviours */	
+
+		/* Filter behaviours */
 		if(this.rowsCounter) this.SetRowsCounter();
 		if(this.statusBar) this.SetStatusBar();
 		if(this.fixedHeaders && !this.isFirstLoad) this.SetFixedHeaders();
@@ -1125,7 +1125,7 @@ TF.prototype = {
 		if(this.hasResultsPerPage && this.paging) this.SetResultsPerPage();
 		if(this.btnReset) this.SetResetBtn();
 		if(this.helpInstructions) this.SetHelpInstructions();
-		
+
 		if(this.hasColWidth && !this.gridLayout) this.SetColWidths();
 
 		if(this.alternateBgs && this.isStartBgAlternate)
@@ -1152,30 +1152,30 @@ TF.prototype = {
 			}
 		}//if bindScript
 		/* */
-		
+
 		this.isFirstLoad = false;
 		this.hasGrid = true;
-		
+
 		if(this.rememberGridValues || this.rememberPageLen || this.rememberPageNb)
 			this.ResetValues();
-		
+
 		//TF css class is added to table
-		if(!this.gridLayout) tf_AddClass(this.tbl, this.prfxTf); 
-		
+		if(!this.gridLayout) tf_AddClass(this.tbl, this.prfxTf);
+
 		if(this.loader) this.ShowLoader('none');
 
 		/* Loads extensions */
-		if(this.hasExtensions) this.LoadExtensions();		
-		
+		if(this.hasExtensions) this.LoadExtensions();
+
 		if(this.onFiltersLoaded)
 			this.onFiltersLoaded.call(null,this);
 
 	},// AddGrid
-	
+
 	EvtManager: function(evt,s)
 	/*====================================================
 		- TF events manager
-		- Params: 
+		- Params:
 			- event name (string)
 			- config object (optional literal object)
 	=====================================================*/
@@ -1190,13 +1190,13 @@ TF.prototype = {
 			switch(evt)
 			{
 				case o.Evt.name.filter:
-					(o.isModFilterFn) 
+					(o.isModFilterFn)
 						? o.modFilterFn.call(null,o)
 						: o._Filter();
 				break;
 				case o.Evt.name.populateselect:
-					(o.refreshFilters) 
-						? o._PopulateSelect(slcIndex,true) 
+					(o.refreshFilters)
+						? o._PopulateSelect(slcIndex,true)
 						: o._PopulateSelect(slcIndex,false,slcExternal,slcId);
 				break;
 				case o.Evt.name.populatechecklist:
@@ -1206,14 +1206,14 @@ TF.prototype = {
 					o._ChangePage(pgIndex);
 				break;
 				case o.Evt.name.clear:
-					o._ClearFilters(); 
+					o._ClearFilters();
 					o._Filter();
 				break;
 				case o.Evt.name.changeresultsperpage:
 					o._ChangeResultsPerPage();
 				break;
 				case o.Evt.name.resetvalues:
-					o._ResetValues();					
+					o._ResetValues();
 					o._Filter();
 				break;
 				case o.Evt.name.resetpage:
@@ -1248,13 +1248,13 @@ TF.prototype = {
 			window.setTimeout(efx,this.execDelay);
 		} else efx();
 	},
-	
+
 	ImportModule: function(module)
 	{
 		if(!module.path || !module.name) return;
 		this.IncludeFile(module.name, module.path, module.init);
 	},
-	
+
 	RemoveGrid: function()
 	/*====================================================
 		- removes a filter grid
@@ -1277,31 +1277,34 @@ TF.prototype = {
 			if(this.loader) this.RemoveLoader();
 			if(this.popUpFilters) this.RemovePopupFilters();
 			if(this.markActiveColumns) this.ClearActiveColumns();
-			
+
 			for(var j=this.refRow; j<this.nbRows; j++)
-			{//this loop shows all rows and removes validRow attribute			
+			{//this loop shows all rows and removes validRow attribute
+				if(rows[j] === null) {
+					continue;
+				}
 				rows[j].style.display = '';
 				try
-				{ 
-					if(rows[j].hasAttribute('validRow')) 
+				{
+					if(rows[j].hasAttribute('validRow'))
 						rows[j].removeAttribute('validRow');
 				} //ie<=6 doesn't support hasAttribute method
 				catch(e){
-					for(var x = 0; x < rows[j].attributes.length; x++) 
+					for(var x = 0; x < rows[j].attributes.length; x++)
 					{
-						if(rows[j].attributes[x].nodeName.tf_LCase()=='validrow') 
+						if(rows[j].attributes[x].nodeName.tf_LCase()=='validrow')
 							rows[j].removeAttribute('validRow');
 					}//for x
 				}//catch(e)
-				
+
 				//removes alterning colors
 				if(this.alternateBgs) this.RemoveRowBg(j);
-				
+
 			}//for j
-	
+
 			if(this.fltGrid && !this.gridLayout)
 			{
-				this.fltGridEl = rows[this.filtersRowIndex];			
+				this.fltGridEl = rows[this.filtersRowIndex];
 				this.tbl.deleteRow(this.filtersRowIndex);
 			}
 			if(this.gridLayout) this.RemoveGridLayout();
@@ -1309,10 +1312,10 @@ TF.prototype = {
 			this.activeFlt = null;
 			this.isStartBgAlternate = true;
 			this.hasGrid = false;
-	
+
 		}//if this.fltGrid
 	},
-	
+
 	SetTopDiv: function()
 	/*====================================================
 		- Generates div above table where paging,
@@ -1320,11 +1323,11 @@ TF.prototype = {
 	=====================================================*/
 	{
 		if(this.infDiv!=null) return;
-	
+
 		/*** container div ***/
 		var infdiv = tf_CreateElm('div',['id',this.prfxInfDiv+this.id]);
 		infdiv.className = this.infDivCssClass;// setAttribute method doesn't seem to work on ie<=6
-		
+
 		if(this.toolBarTgtId) //custom container
 			tf_Id(this.toolBarTgtId).appendChild(infdiv);
 		else if(this.fixedHeaders && this.contDiv) //fixed headers
@@ -1336,29 +1339,29 @@ TF.prototype = {
 		else //default location: above table
 			this.tbl.parentNode.insertBefore(infdiv, this.tbl);
 		this.infDiv = tf_Id(this.prfxInfDiv+this.id);
-		
+
 		/*** left div containing rows # displayer ***/
 		var ldiv = tf_CreateElm('div',['id',this.prfxLDiv+this.id]);
 		ldiv.className = this.lDivCssClass;/*'ldiv'*/;
 		infdiv.appendChild(ldiv);
-		this.lDiv = tf_Id(this.prfxLDiv+this.id);		
-		
-		/*** 	right div containing reset button 
-				+ nb results per page select 	***/	
+		this.lDiv = tf_Id(this.prfxLDiv+this.id);
+
+		/*** 	right div containing reset button
+				+ nb results per page select 	***/
 		var rdiv = tf_CreateElm('div',['id',this.prfxRDiv+this.id]);
 		rdiv.className = this.rDivCssClass/*'rdiv'*/;
 		infdiv.appendChild(rdiv);
 		this.rDiv = tf_Id(this.prfxRDiv+this.id);
-		
+
 		/*** mid div containing paging elements ***/
 		var mdiv = tf_CreateElm('div',['id',this.prfxMDiv+this.id]);
-		mdiv.className = this.mDivCssClass/*'mdiv'*/;						
+		mdiv.className = this.mDivCssClass/*'mdiv'*/;
 		infdiv.appendChild(mdiv);
 		this.mDiv = tf_Id(this.prfxMDiv+this.id);
-		
+
 		if(this.helpInstructions==null) this.SetHelpInstructions();
 	},
-	
+
 	RemoveTopDiv: function()
 	/*====================================================
 		- Removes div above table where paging,
@@ -1369,7 +1372,7 @@ TF.prototype = {
 		this.infDiv.parentNode.removeChild(this.infDiv);
 		this.infDiv = null;
 	},
-	
+
 	RemoveExternalFlts: function()
 	/*====================================================
 		- removes external filters
@@ -1380,10 +1383,10 @@ TF.prototype = {
 			if(tf_Id(this.externalFltTgtIds[ct]))
 				tf_Id(this.externalFltTgtIds[ct]).innerHTML = '';
 	},
-	
+
 	Filter: function()
 	{
-		this.EvtManager(this.Evt.name.filter); 
+		this.EvtManager(this.Evt.name.filter);
 	},
 	_Filter: function()
 	/*====================================================
@@ -1391,31 +1394,31 @@ TF.prototype = {
 		- retrieves data from each td in every single tr
 		and compares to search string for current
 		column
-		- tr is hidden if all search strings are not 
+		- tr is hidden if all search strings are not
 		found
 	=====================================================*/
 	{
 		if(!this.fltGrid || (!this.hasGrid && !this.isFirstLoad)) return;
 		//invokes eventual onbefore method
 		if(this.onBeforeFilter) this.onBeforeFilter.call(null,this);
-		
+
 		if(this.inpWatermark != '') this.SetWatermark(false);
-		
-		var row = this.tbl.rows;	
+
+		var row = this.tbl.rows;
 		f = this.fObj!=undefined ? this.fObj : [];
 		var hiddenrows = 0;
 		this.validRowsIndex = [];
-		var o = this;		
-		
+		var o = this;
+
 		//removes keyword highlighting
 		if(this.highlightKeywords) this.UnhighlightAll();
-		//removes popup filters active icons 
+		//removes popup filters active icons
 		if(this.popUpFilters) this.SetAllPopupFiltersIcon();
 		//removes active column header class
 		if(this.markActiveColumns) this.ClearActiveColumns();
 		//search args re-init
-		this.searchArgs = this.GetFiltersValue(); 
-		
+		this.searchArgs = this.GetFiltersValue();
+
 		var num_cell_data, nbFormat;
 		var re_le = new RegExp(this.leOperator), re_ge = new RegExp(this.geOperator);
 		var re_l = new RegExp(this.lwOperator), re_g = new RegExp(this.grOperator);
@@ -1424,7 +1427,7 @@ TF.prototype = {
 		var re_en = new RegExp(this.enOperator), re_an = new RegExp(this.anOperator);
 		var re_cr = new RegExp(this.curExp), re_em = this.emOperator;
 		var re_nm = this.nmOperator, re_re = new RegExp(tf_RegexpEscape(this.rgxOperator));
-		
+
 		function highlight(str,ok,cell){//keyword highlighting
 			if(o.highlightKeywords && ok){
 				str = str.replace(re_lk,'');
@@ -1432,13 +1435,13 @@ TF.prototype = {
 				str = str.replace(re_st,'');
 				str = str.replace(re_en,'');
 				var w = str;
-				if(re_le.test(str) || re_ge.test(str) || re_l.test(str) || re_g.test(str) || re_d.test(str))	
+				if(re_le.test(str) || re_ge.test(str) || re_l.test(str) || re_g.test(str) || re_d.test(str))
 					w = tf_GetNodeText(cell);
 				if(w!='')
 					tf_HighlightWord(cell,w,o.highlightCssClass,o);
 			}
 		}
-		
+
 		//looks for search argument in current row
 		function hasArg(sA,cell_data,j)
 		{
@@ -1451,7 +1454,7 @@ TF.prototype = {
 			var hasST = re_st.test(sA), hasEN = re_en.test(sA);
 			var hasEM = (re_em == sA), hasNM = (re_nm == sA);
 			var hasRE = re_re.test(sA);
-			
+
 			//Search arg dates tests
 			var isLDate = (hasLO && tf_IsValidDate(sA.replace(re_l,''),dtType));
 			var isLEDate = (hasLE && tf_IsValidDate(sA.replace(re_le,''),dtType));
@@ -1463,32 +1466,32 @@ TF.prototype = {
 			if(tf_IsValidDate(cell_data,dtType))
 			{//dates
 				var dte1 = tf_FormatDate(cell_data,dtType);
-				if(isLDate) 
+				if(isLDate)
 				{// lower date
 					var dte2 = tf_FormatDate(sA.replace(re_l,''),dtType);
 					occurence = (dte1 < dte2);
 				}
-				else if(isLEDate) 
+				else if(isLEDate)
 				{// lower equal date
 					var dte2 = tf_FormatDate(sA.replace(re_le,''),dtType);
 					occurence = (dte1 <= dte2);
 				}
-				else if(isGEDate) 
+				else if(isGEDate)
 				{// greater equal date
 					var dte2 = tf_FormatDate(sA.replace(re_ge,''),dtType);
 					occurence = (dte1 >= dte2);
 				}
-				else if(isGDate) 
+				else if(isGDate)
 				{// greater date
 					var dte2 = tf_FormatDate(sA.replace(re_g,''),dtType);
 					occurence = (dte1 > dte2);
 				}
-				else if(isDFDate) 
+				else if(isDFDate)
 				{// different date
 					var dte2 = tf_FormatDate(sA.replace(re_d,''),dtType);
 					occurence = (dte1.toString() != dte2.toString());
 				}
-				else if(isEQDate) 
+				else if(isEQDate)
 				{// equal date
 					var dte2 = tf_FormatDate(sA.replace(re_eq,''),dtType);
 					occurence = (dte1.toString() == dte2.toString());
@@ -1504,13 +1507,13 @@ TF.prototype = {
 				}
 				else if(hasEM) //empty
 					occurence = (cell_data.tf_Trim()=='' ? true : false);
-				
+
 				else if(hasNM) //non-empty
 					occurence = (cell_data.tf_Trim()!='' ? true : false);
 			}
-			
-			else 
-			{						
+
+			else
+			{
 				//first numbers need to be formated
 				if(o.hasColNbFormat && o.colNbFormat[j]!=null)
 				{
@@ -1526,32 +1529,32 @@ TF.prototype = {
 						nbFormat = 'eu';
 					}
 				}
-				
+
 				// first checks if there is any operator (<,>,<=,>=,!,*,=,{,},rgx:)
 				if(hasLE) //lower equal
 					occurence = num_cell_data <= tf_RemoveNbFormat(sA.replace(re_le,''),nbFormat);
-				
+
 				else if(hasGE) //greater equal
 					occurence = num_cell_data >= tf_RemoveNbFormat(sA.replace(re_ge,''),nbFormat);
-				
+
 				else if(hasLO) //lower
 					occurence = num_cell_data < tf_RemoveNbFormat(sA.replace(re_l,''),nbFormat);
-					
+
 				else if(hasGR) //greater
-					occurence = num_cell_data > tf_RemoveNbFormat(sA.replace(re_g,''),nbFormat);							
-					
+					occurence = num_cell_data > tf_RemoveNbFormat(sA.replace(re_g,''),nbFormat);
+
 				else if(hasDF) //different
 					occurence = o.__containsStr(sA.replace(re_d,''),cell_data) ? false : true;
-			
+
 				else if(hasLK) //like
 					occurence = o.__containsStr(sA.replace(re_lk,''),cell_data,null,false);
-				
+
 				else if(hasEQ) //equal
 					occurence = o.__containsStr(sA.replace(re_eq,''),cell_data,null,true);
-				
+
 				else if(hasST) //starts with
 					occurence = cell_data.indexOf(sA.replace(re_st,''))==0 ? true : false;
-				
+
 				else if(hasEN) //ends with
 				{
 					var searchArg = sA.replace(re_en,'');
@@ -1559,51 +1562,51 @@ TF.prototype = {
 						&& cell_data.lastIndexOf(searchArg,cell_data.length-1) > -1
 						? true : false;
 				}
-				
+
 				else if(hasEM) //empty
 					occurence = (cell_data.tf_Trim()=='' ? true : false);
-				
+
 				else if(hasNM) //non-empty
 					occurence = (cell_data.tf_Trim()!='' ? true : false);
- 
+
 				else if(hasRE){ //regexp
 					try{ //in case regexp fires an exception
 						var searchArg = sA.replace(re_re,''); //operator is removed
-						var rgx = new RegExp(searchArg); 
+						var rgx = new RegExp(searchArg);
 						occurence = rgx.test(cell_data);
 					} catch(e) { occurence = false; }
 				}
-				
+
 				else
 					occurence = o.__containsStr(sA,cell_data,(f['col_'+j]==undefined) ? this.fltTypeInp : f['col_'+j]);
 
 			}//else
 			return occurence;
 		}//fn
-		
+
 		for(var k=this.refRow; k<this.nbRows; k++)
 		{
 			/*** if table already filtered some rows are not visible ***/
 			if(row[k].style.display == 'none') row[k].style.display = '';
-					
+
 			var cell = row[k].cells;
-			var nchilds = cell.length;	
-			
+			var nchilds = cell.length;
+
 			// checks if row has exact cell #
 			if(nchilds != this.nbCells) continue;
-	
+
 			var occurence = [];
 			var isRowValid = (this.searchType=='include') ? true : false;
 			var singleFltRowValid = false; //only for single filter search
-			
+
 			for(var j=0; j<nchilds; j++)
 			{// this loop retrieves cell data
 				var sA = this.searchArgs[(this.singleSearchFlt) ? 0 : j]; //searched keyword
 				var dtType = (this.hasColDateType) ? this.colDateType[j] : this.defaultDateType;
 				if(sA=='') continue;
-				
+
 				var cell_data = this.GetCellData(j, cell[j]).tf_MatchCase(this.matchCase);
-	
+
 				var sAOrSplit = sA.split(this.orOperator);//multiple search parameter operator ||
 				var hasMultiOrSA = (sAOrSplit.length>1) ? true : false;//multiple search || parameter boolean
 				var sAAndSplit = sA.split(this.anOperator);//multiple search parameter operator &&
@@ -1623,11 +1626,11 @@ TF.prototype = {
 					}
 					occurence[j] = occur;
 				}
-				else {//single search parameter		
+				else {//single search parameter
 					occurence[j] = hasArg(sA.tf_Trim(),cell_data,j);
 					highlight(sA,occurence[j],cell[j]);
 				}//else single param
-				
+
 				if(!occurence[j]) isRowValid = (this.searchType=='include') ? false : true;
 				if(this.singleSearchFlt && occurence[j]) singleFltRowValid = true;
 				if(this.popUpFilters) this.SetPopupFilterIcon(j, true);
@@ -1639,9 +1642,9 @@ TF.prototype = {
 					}
 				}
 			}//for j
-			
+
 			if(this.singleSearchFlt && singleFltRowValid) isRowValid = true;
-			
+
 			if(!isRowValid)
 			{
 				this.SetRowValidation(k,false);
@@ -1656,23 +1659,23 @@ TF.prototype = {
 				if(this.alternateBgs) this.SetRowBg(k,this.validRowsIndex.length);
 				if(this.onRowValidated) this.onRowValidated.call(null,this,k);
 			}
-			
+
 		}// for k
-		
+
 		this.nbVisibleRows = this.validRowsIndex.length;
 		this.nbHiddenRows = hiddenrows;
 		this.isStartBgAlternate = false;
 		if(this.rememberGridValues) this.RememberFiltersValue(this.fltsValuesCookie);
 		if(!this.paging) this.ApplyGridProps();//applies filter props after filtering process
-		if(this.paging){ 
-			this.startPagingRow = 0; 
+		if(this.paging){
+			this.startPagingRow = 0;
 			this.currentPageNb = 1;
-			this.SetPagingInfo(this.validRowsIndex); 
+			this.SetPagingInfo(this.validRowsIndex);
 		}//starts paging process
 		//invokes eventual onafter function
 		if(this.onAfterFilter) this.onAfterFilter.call(null,this);
 	},
-	
+
 	ApplyGridProps: function()
 	/*====================================================
 		- checks methods that should be called
@@ -1681,28 +1684,28 @@ TF.prototype = {
 	{
 		if(this.activeFlt && this.activeFlt.nodeName.tf_LCase()==this.fltTypeSlc && !this.popUpFilters)
 		{// blurs active filter (IE)
-			this.activeFlt.blur(); 
+			this.activeFlt.blur();
 			if(this.activeFlt.parentNode) this.activeFlt.parentNode.focus();
 		}
-		
+
 		if(this.visibleRows) this.SetVisibleRows();//shows rows always visible
 		if(this.colOperation) this.SetColOperation();//makes operation on a col
 		if(this.refreshFilters) this.RefreshFiltersGrid();//re-populates drop-down filters
-		var nr = (!this.paging && this.hasVisibleRows) 
+		var nr = (!this.paging && this.hasVisibleRows)
 					? (this.nbVisibleRows - this.visibleRows.length) : this.nbVisibleRows;
 		if(this.rowsCounter) this.RefreshNbRows(nr);//refreshes rows counter
-		
+
 		if(this.inpWatermark != '') this.SetWatermark(true);
 		if(this.popUpFilters) this.CloseAllPopupFilters();
 	},
-	
+
 	GetColValues: function(colindex,num,exclude)
 	/*====================================================
 		- returns an array containing cell values of
 		a column
 		- needs following args:
 			- column index (number)
-			- a boolean set to true if we want only 
+			- a boolean set to true if we want only
 			numbers to be returned
 			- array containing rows index to be excluded
 			from returned values
@@ -1711,7 +1714,7 @@ TF.prototype = {
 		if(!this.fltGrid) return;
 		var row = this.tbl.rows;
 		var colValues = [];
-	
+
 		for(var i=this.refRow; i<this.nbRows; i++)//iterates rows
 		{
 			var isExludedRow = false;
@@ -1721,7 +1724,7 @@ TF.prototype = {
 			}
 			var cell = row[i].cells;
 			var nchilds = cell.length;
-			
+
 			if(nchilds == this.nbCells && !isExludedRow)
 			{// checks if row has exact cell # and is not excluded
 				for(var j=0; j<nchilds; j++)// this loop retrieves cell data
@@ -1730,15 +1733,15 @@ TF.prototype = {
 					{
 						var cell_data = this.GetCellData(j, cell[j]).tf_LCase();
 						var nbFormat = this.colNbFormat ? this.colNbFormat[colindex] : null;
-						(num) ? colValues.push(tf_RemoveNbFormat(cell_data,nbFormat)) 
+						(num) ? colValues.push(tf_RemoveNbFormat(cell_data,nbFormat))
 								: colValues.push(cell_data);
 					}//if j==k
 				}//for j
 			}//if nchilds == this.nbCells
 		}//for i
-		return colValues;	
+		return colValues;
 	},
-	
+
 	GetFilterValue: function(index)
 	/*====================================================
 		- Returns value of a specified filter
@@ -1750,14 +1753,14 @@ TF.prototype = {
 		var fltValue;
 		var flt = this.GetFilterElement(index);
 		if(flt==null) return fltValue='';
-		
-		if(this['col'+index]!=this.fltTypeMulti && 
+
+		if(this['col'+index]!=this.fltTypeMulti &&
 			this['col'+index]!=this.fltTypeCheckList)
 			fltValue = flt.value;
 		else if(this['col'+index] == this.fltTypeMulti)
 		{//mutiple select
 			fltValue = '';
-			for(var j=0; j<flt.options.length; j++) 
+			for(var j=0; j<flt.options.length; j++)
 				if(flt.options[j].selected)
 					fltValue = fltValue.concat(
 								flt.options[j].value+' ' +
@@ -1774,10 +1777,10 @@ TF.prototype = {
 				//removes last operator ||
 				fltValue = fltValue.substr(0,fltValue.length-3);
 			} else fltValue = '';
-		}			
+		}
 		return fltValue;
 	},
-	
+
 	GetFiltersValue: function()
 	/*====================================================
 		- Returns the value of every single filter
@@ -1791,7 +1794,7 @@ TF.prototype = {
 			);
 		return searchArgs;
 	},
-	
+
 	GetFilterId: function(index)
 	/*====================================================
 		- Returns filter id of a specified column
@@ -1802,10 +1805,10 @@ TF.prototype = {
 		if(!this.fltGrid) return;
 		return this.fltIds[i];
 	},
-	
+
 	GetFiltersByType: function(type,bool)
 	/*====================================================
-		- returns an array containing ids of filters of a 
+		- returns an array containing ids of filters of a
 		specified type (inputs or selects)
 		- Note that hidden filters are also returned
 		- Needs folllowing args:
@@ -1828,7 +1831,7 @@ TF.prototype = {
 		}
 		return arr;
 	},
-	
+
 	GetFilterElement: function(index)
 	/*====================================================
 		- returns filter DOM element for a given column
@@ -1838,21 +1841,21 @@ TF.prototype = {
 		if(!this.fltGrid) return null;
 		return tf_Id(this.fltIds[index]);
 	},
-	
+
 	GetCellsNb: function(rowIndex)
 	/*====================================================
 		- returns number of cells in a row
-		- if rowIndex param is passed returns number of 
+		- if rowIndex param is passed returns number of
 		cells of specified row (number)
 	=====================================================*/
 	{
 		var tr = (rowIndex == undefined) ? this.tbl.rows[0] : this.tbl.rows[rowIndex];
 		return tr.cells.length;
 	},
-	
+
 	GetRowsNb: function(includeHeaders)
 	/*====================================================
-		- returns total nb of filterable rows starting 
+		- returns total nb of filterable rows starting
 		from reference row if defined
 		- Param:
 			- includeHeaders: if true header rows are
@@ -1864,7 +1867,7 @@ TF.prototype = {
 		if(includeHeaders){ s = 0; }
 		return parseInt(ntrs-s);
 	},
-	
+
 	GetCellData: function(i, cell)
 	/*====================================================
 		- returns text content of a given cell
@@ -1880,16 +1883,16 @@ TF.prototype = {
 		else
 			return tf_GetNodeText(cell);
 	},
-	
+
 	GetRowDisplay: function(row)
 	{
 		if(!this.fltGrid && !tf_IsObj(row)) return;
 		return row.style.display;
 	},
-	
+
 	SetRowValidation: function(rowIndex,isValid)
 	/*====================================================
-		- Validates/unvalidates row by setting 'validRow' 
+		- Validates/unvalidates row by setting 'validRow'
 		attribute and shows/hides row
 		- Params:
 			- rowIndex: index of the row (number)
@@ -1898,19 +1901,19 @@ TF.prototype = {
 	{
 		var row = this.tbl.rows[rowIndex];
 		if(!row || (typeof isValid).tf_LCase()!='boolean') return;
-	
+
 		// always visible rows are valid
 		if(this.hasVisibleRows && this.visibleRows.tf_Has(rowIndex) && !this.paging)
 			isValid = true;
-		
+
 		var displayFlag = (isValid) ? '' : 'none';
-		var validFlag = (isValid) ? 'true' : 'false';		
+		var validFlag = (isValid) ? 'true' : 'false';
 		row.style.display = displayFlag;
-		
-		if(this.paging) 
+
+		if(this.paging)
 			row.setAttribute('validRow',validFlag);
 	},
-	
+
 	ValidateAllRows: function()
 	/*====================================================
 		- Validates all filterable rows
@@ -1924,7 +1927,7 @@ TF.prototype = {
 			this.validRowsIndex.push(k);
 		}
 	},
-	
+
 	SetFilterValue: function(index,searcharg,doFilter)
 	/*====================================================
 		- Inserts value in a specified filter
@@ -1932,7 +1935,7 @@ TF.prototype = {
 			- index: filter column index (numeric value)
 			- searcharg: search string
 			- doFilter: optional boolean for multiple
-			selects: executes filtering when multiple 
+			selects: executes filtering when multiple
 			select populated... IE only!
 	=====================================================*/
 	{
@@ -1940,19 +1943,19 @@ TF.prototype = {
 		var slc = this.GetFilterElement(index);
 		var execFilter = (doFilter==undefined) ? true : doFilter;
 		searcharg = (searcharg==undefined) ? '' : searcharg;
-		
-		if(this['col'+index]!=this.fltTypeMulti && 
+
+		if(this['col'+index]!=this.fltTypeMulti &&
 			this['col'+index]!=this.fltTypeCheckList){
 			slc.value = searcharg;
 			if(this['col'+index]==this.fltTypeInp && this.inpWatermark!='')
 				tf_RemoveClass(slc, this.inpWatermarkCssClass);
 		}
-			
+
 		else if(this['col'+index] == this.fltTypeMulti)
 		{//multiple selects
 			var s = searcharg.split(' '+this.orOperator+' ');
 			var ct = 0; //keywords counter
-			for(var j=0; j<slc.options.length; j++) 
+			for(var j=0; j<slc.options.length; j++)
 			{
 				if(s=='') slc.options[j].selected = false;
 				if(slc.options[j].value=='') slc.options[j].selected = false;
@@ -1964,20 +1967,20 @@ TF.prototype = {
 						var filter = (ct==(s.length-1) && execFilter) ? true : false;
 						this.__deferMultipleSelection(slc,j,filter);
 						ct++;
-					}					
+					}
 					else
 						slc.options[j].selected = true;
 				}//if
 			}//for j
 		}
-		
+
 		else if(this['col'+index]==this.fltTypeCheckList)
 		{//checklist
 			searcharg = searcharg.tf_MatchCase(this.matchCase);
 			var s = searcharg.split(' '+this.orOperator+' ');
 			var fltValue = slc.setAttribute('value','');
 			var fltIndex = slc.setAttribute('indexes','');
-			for(var k=0; k<tf_Tag(slc,'li').length; k++) 
+			for(var k=0; k<tf_Tag(slc,'li').length; k++)
 			{
 				var li = tf_Tag(slc,'li')[k];
 				var lbl = tf_Tag(li,'label')[0];
@@ -1988,7 +1991,7 @@ TF.prototype = {
 					chk.checked = true;
 					this.__setCheckListValues(chk);
 				}
-				else{ 
+				else{
 					chk.checked = false;
 					this.__setCheckListValues(chk);
 				}
@@ -2015,7 +2018,7 @@ TF.prototype = {
 					row.cells[k].style.width = o.colWidth[k];
 		}
 	},
-	
+
 	SetVisibleRows: function()
 	/*====================================================
 		- makes a row always visible
@@ -2031,11 +2034,11 @@ TF.prototype = {
 			}//for i
 		}//if hasGrid
 	},
-	
+
 	ClearFilters: function()
-	{ 
-		this.EvtManager(this.Evt.name.clear); 
-	},	
+	{
+		this.EvtManager(this.Evt.name.clear);
+	},
 	_ClearFilters: function()
 	/*====================================================
 		- clears grid filters
@@ -2046,14 +2049,14 @@ TF.prototype = {
 		for(var i=0; i<this.fltIds.length; i++)
 			this.SetFilterValue(i,'');
 		if(this.refreshFilters){
-			this.activeFilterId = '';	
+			this.activeFilterId = '';
 			this.RefreshFiltersGrid();
 		}
 		if(this.rememberPageLen){ tf_RemoveCookie(this.pgLenCookie); }
 		if(this.rememberPageNb){ tf_RemoveCookie(this.pgNbCookie); }
 		if(this.onAfterReset){ this.onAfterReset.call(null, this); }
 	},
-		
+
 	ClearActiveColumns: function()
 	/*====================================================
 		- clears active columns header class name
@@ -2062,7 +2065,7 @@ TF.prototype = {
 		for(var i=0; i<this.fltIds.length; i++)
 			tf_RemoveClass(this.GetHeaderElement(i), this.activeColumnsCssClass);
 	},
-	
+
 	RefreshGrid: function(config)
 	/*====================================================
 		- Re-generates filters grid
@@ -2084,11 +2087,11 @@ TF.prototype = {
 			this.sort = true; //finally sort property is enabled again
 		}
 	},
-	
+
 	/*====================================================
 		- Private methods
 	=====================================================*/
-	
+
 	__resetGrid: function()
 	/*====================================================
 		- Only used by AddGrid() method
@@ -2096,30 +2099,30 @@ TF.prototype = {
 	=====================================================*/
 	{
 		if(this.isFirstLoad) return;
-		
+
 		// grid was removed, grid row element is stored in fltGridEl property
 		if(!this.gridLayout){
-			this.tbl.rows[this.filtersRowIndex].parentNode.insertBefore( 
+			this.tbl.rows[this.filtersRowIndex].parentNode.insertBefore(
 				this.fltGridEl,
 				this.tbl.rows[this.filtersRowIndex]
 			);
 		}
-		
+
 		if(this.isExternalFlt)
 		{// filters are appended in external placeholders elements
 			for(var ct=0; ct<this.externalFltTgtIds.length; ct++)
 				if(tf_Id(this.externalFltTgtIds[ct])){
 					tf_Id(this.externalFltTgtIds[ct]).appendChild(this.externalFltEls[ct]);
-					
+
 					//IE special treatment for gridLayout, appended filters are empty
 					if(this.gridLayout && this.externalFltEls[ct].innerHTML=='' && this['col'+ct] != this.fltTypeInp){
-						if(this['col'+ct] == this.fltTypeSlc || this['col'+ct] == this.fltTypeMulti) 
+						if(this['col'+ct] == this.fltTypeSlc || this['col'+ct] == this.fltTypeMulti)
 							this.PopulateSelect(ct);
 						if(this['col'+ct] == this.fltTypeCheckList) this.PopulateCheckList(ct);
 					}
 				}
 		}
-				
+
 		this.nbFilterableRows = this.GetRowsNb();
 		this.nbVisibleRows = this.nbFilterableRows;
 		this.nbRows = this.tbl.rows.length;
@@ -2129,9 +2132,9 @@ TF.prototype = {
 			refreshFilters(this);
 		else
 			if(this.popUpFilters){ this.headersRow++; this.SetPopupFilters(); }
-			
+
 		/*** 	ie bug work-around, filters need to be re-generated
-				since row is empty; insertBefore method doesn't seem to work properly 
+				since row is empty; insertBefore method doesn't seem to work properly
 				with previously generated DOM nodes modified by innerHTML 	***/
 		function refreshFilters(o){
 			o.tbl.deleteRow(o.filtersRowIndex);
@@ -2141,11 +2144,11 @@ TF.prototype = {
 			if(o.popUpFilters) o.RemovePopupFilters();
 			o._AddGrid();
 		}
-		
+
 		if(!this.gridLayout) tf_AddClass(this.tbl, this.prfxTf);
 		this.hasGrid = true;
 	},
-	
+
 	__containsStr: function(arg,data,fltType,forceMatch)
 	/*==============================================
 		- Checks if data contains searched arg,
@@ -2153,8 +2156,8 @@ TF.prototype = {
 		- Params:
 			- arg: searched string
 			- data: data string
-			- fltType: filter type (string, 
-			exact match by default for selects - 
+			- fltType: filter type (string,
+			exact match by default for selects -
 			optional)
 			- forceMatch: boolean forcing exact
 			match (optional)
@@ -2166,20 +2169,20 @@ TF.prototype = {
 		var modifier = (this.matchCase) ? 'g' : 'gi';
 		var exactMatch = (forceMatch==undefined) ? this.exactMatch : forceMatch;
 		if(exactMatch || (fltType!=this.fltTypeInp && fltType!=undefined))//V�ry P�ter's patch
-			regexp = new RegExp('(^\\s*)'+tf_RegexpEscape(arg)+'(\\s*$)', modifier);							
+			regexp = new RegExp('(^\\s*)'+tf_RegexpEscape(arg)+'(\\s*$)', modifier);
 		else
 			regexp = new RegExp(tf_RegexpEscape(arg), modifier);
 		return regexp.test(data);
 	},
-	
+
 	IncludeFile: function(fileId, filePath, callback, type)
 	{
 		var ftype = (type==undefined) ? 'script' : type;
 		var isImported = tf_IsImported(filePath, ftype);
 		if(isImported) return;
-		var o = this, isLoaded = false, file;			
+		var o = this, isLoaded = false, file;
 		var head = tf_Tag(document,'head')[0];
-		
+
 		if(ftype.tf_LCase() == 'link')
 			file = tf_CreateElm(
 						'link', ['id',fileId], ['type','text/css'],
@@ -2187,20 +2190,20 @@ TF.prototype = {
 					);
 		else
 			file = tf_CreateElm(
-						'script', ['id',fileId], 
+						'script', ['id',fileId],
 						['type','text/javascript'], ['src',filePath]
 					);
-		
+
 		file.onload = file.onreadystatechange = function()
 		{//Browser <> IE onload event works only for scripts, not for stylesheets
-			if(!isLoaded && 
-				(!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete')) 
+			if(!isLoaded &&
+				(!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete'))
 			{
 				isLoaded = true;
 				if(typeof callback === 'function')	callback.call(null,o);
 			}
 		}
-		file.onerror = function(){ 
+		file.onerror = function(){
 			throw new Error('TF script could not load:\n' + this.src);
 		}
 		head.appendChild(file);
@@ -2275,7 +2278,7 @@ function tf_Tag(o,tagname)
 
 function tf_RegexpEscape(s)
 /*====================================================
-	- escapes special characters [\^$.|?*+() 
+	- escapes special characters [\^$.|?*+()
 	for regexp
 	- Many thanks to Cedric Wartel for this fn
 =====================================================*/
@@ -2305,7 +2308,7 @@ function tf_CreateElm(tag)
 =====================================================*/
 {
 	if(tag==undefined || tag==null || tag=='') return;
-	var el = document.createElement(tag);		
+	var el = document.createElement(tag);
 	if(arguments.length>1)
 	{
 		for(var i=0; i<arguments.length; i++)
@@ -2315,14 +2318,14 @@ function tf_CreateElm(tag)
 			{
 				case 'object':
 					if(arguments[i].length==2)
-					{						
+					{
 						el.setAttribute(arguments[i][0],arguments[i][1]);
 					}//if array length==2
 				break;
 			}//switch
 		}//for i
 	}//if args
-	return el;	
+	return el;
 }
 
 function tf_CreateText(node)
@@ -2449,7 +2452,7 @@ function tf_RemoveClass(elm,cl){
 function tf_IsValidDate(dateStr, format){
 	if(format == null) { format = 'DMY'; }
 	format = format.toUpperCase();
-	if(format.length != 3) { 
+	if(format.length != 3) {
 		if(format=='DDMMMYYYY'){
 			var d = tf_FormatDate(dateStr, format);
 			dateStr = d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
@@ -2490,7 +2493,7 @@ function tf_FormatDate(dateStr, format){
 	if(format === null){ format = 'DMY'; }
 	if(!dateStr || dateStr === ''){ return new Date(1001, 0, 1); }
 	var oDate, parts;
-	
+
 	function y2kDate(yr){
 		if(yr == undefined) return 0;
 		if(yr.length>2) return yr;
@@ -2501,7 +2504,7 @@ function tf_FormatDate(dateStr, format){
 			y = '20' + yr;
 		return y;
 	}
-	
+
 	function mmm2mm(mmm){
 		if(mmm == undefined){ return 0; }
 		var mondigit;
@@ -2520,7 +2523,7 @@ function tf_FormatDate(dateStr, format){
 	 	if ((mondigit < 1) || (mondigit > 12)){ return 0; }
 		return mondigit;
 	}
-	
+
 	switch(format.toUpperCase()){
 		case 'DDMMMYYYY':
 			parts = dateStr.replace(/[- \/.]/g,' ').split(' ');
@@ -2558,7 +2561,7 @@ function tf_RemoveNbFormat(data,format){
 }
 
 function tf_IsImported(filePath,type){
-	var isImported = false; 
+	var isImported = false;
 	var importType = (type==undefined) ? 'script' : type;
 	var attr = importType == 'script' ? 'src' : 'href';
 	var files = tf_Tag(document,importType);
@@ -2567,7 +2570,7 @@ function tf_IsImported(filePath,type){
 		if(files[i][attr] == undefined) continue;
 		if(files[i][attr].match(filePath))
 		{
-			isImported = true;	
+			isImported = true;
 			break;
 		}
 	}
@@ -2590,7 +2593,7 @@ function tf_IsStylesheetImported(stylesheet){
 		} else {
 			var r =  (s[i].cssRules ? s[i].cssRules : s[i].rules);
 			for(var j=0; j<r.length; j++){
-				if(regexp.test(r[j].cssText)){ 
+				if(regexp.test(r[j].cssText)){
 					isImported = true; break;
 				}
 			}
@@ -2613,10 +2616,10 @@ function tf_ReadCookie(name){
 	var cookieValue = '';
 	var search = name + '=';
 	if(document.cookie.length > 0)
-	{ 
+	{
 		offset = document.cookie.indexOf(search);
 		if(offset != -1)
-		{ 
+		{
 			offset += search.length;
 			end = document.cookie.indexOf(';', offset);
 			if(end == -1) end = document.cookie.length;
@@ -2628,7 +2631,7 @@ function tf_ReadCookie(name){
 
 function tf_CookieValueArray(name, separator){
 	if(separator==undefined) separator = ',';
-	var val = tf_ReadCookie(name); //reads the cookie 
+	var val = tf_ReadCookie(name); //reads the cookie
 	var arr = val.split(separator); //creates an array with filters' values
 	return arr;
 }
@@ -2662,13 +2665,13 @@ function tf_SetOuterHtml(){
 			}
 		}
 	}
-	
+
 	if(element.__defineSetter__) {
 		HTMLElement.prototype.__defineSetter__("outerHTML", function(sHTML) {
 		   var r = this.ownerDocument.createRange();
 		   r.setStartBefore(this);
 		   var df = r.createContextualFragment(sHTML);
-		   this.parentNode.replaceChild(df, this);	
+		   this.parentNode.replaceChild(df, this);
 		   return sHTML;
 		});
 	}
@@ -2682,7 +2685,7 @@ function setFilterGrid(id)
 	- Params:
 			- id: table id (string)
 			- refRow (optional): row index (number)
-			- config (optional): configuration 
+			- config (optional): configuration
 			object (literal object)
 	- Returns TF object
 =====================================================*/
@@ -2694,9 +2697,9 @@ function setFilterGrid(id)
 }
 
 /*===BEGIN removable section===========================
-	- Unobtrusive grid bar generation using 
+	- Unobtrusive grid bar generation using
 	'filterable' class
-	- If you don't use it you can remove safely this 
+	- If you don't use it you can remove safely this
 	section
 /*=====================================================*/
 window['tf_isNotIE'] = !(/msie|MSIE/.test(navigator.userAgent));

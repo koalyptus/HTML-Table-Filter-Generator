@@ -3192,7 +3192,8 @@ TF.prototype = {
 			for(var i=0; i<this.fltIds.length; i++){
 				if(this['col'+i]!=this.fltTypeInp) continue; //only input type filters
 				var inpWatermark = (!this.isInpWatermarkArray ? this.inpWatermark : this.inpWatermark[i]);
-				if(this.GetFilterValue(i) == (set ? '' : inpWatermark)){
+				if(this.GetFilterValue(i) == (set ? '' : inpWatermark) &&
+					(document.activeElement != this.GetFilterElement(i))){
 					this.SetFilterValue(i,(!set ? '' : inpWatermark));
 					tf_AddClass(this.GetFilterElement(i), this.inpWatermarkCssClass);
 				}

@@ -11,7 +11,7 @@ This script adds to any html table a "filter by column" feature that enables use
 	* Advanced columns filtering model
 	* Sorting and pagination facilities
 	* Complete selection model (addon)
-	* Extended keyboard navigation (addon) 
+	* Extended keyboard navigation (addon)
 	* Inline cell or row editing (addon)
 	* Row insertion or deleting (addon)
 	* And even more behaviors...
@@ -23,4 +23,3 @@ This script adds to any html table a "filter by column" feature that enables use
 
 ##Website
 Demos and documentation available @ http://tablefilter.free.fr/
-

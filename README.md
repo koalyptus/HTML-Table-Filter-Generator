@@ -25,5 +25,6 @@ This script adds to any html table a "filter by column" feature that enables use
 Demos and documentation available @ http://tablefilter.free.fr/
 
 ##*Important note
-This script is now being replaced by [TableFilter](https://github.com/koalyptus/TableFilter). There will be no longer updates in this repository. If you haven't used this script before, you can safely switch to [TableFilter](https://github.com/koalyptus/TableFilter). If you already used this library in the past, check the [demos](https://github.com/koalyptus/TableFilter) out and read the documentation in the [WIKI](https://github.com/koalyptus/TableFilter/wiki)to understand the changes occurred to the configuration options. 
-Enjoy the next generation of the HTML Table Filter Generator :)
+This script is now being replaced by [TableFilter](https://github.com/koalyptus/TableFilter). There will be no longer updates in this repository. If you haven't used this script before, you can safely switch to [TableFilter](https://github.com/koalyptus/TableFilter). If you already used this library in the past, check the [demos](https://github.com/koalyptus/TableFilter) out and read the documentation in the [WIKI](https://github.com/koalyptus/TableFilter/wiki) to understand the changes occurred to the configuration options.
+
+Enjoy the next generation of the HTML Table Filter Generator!
